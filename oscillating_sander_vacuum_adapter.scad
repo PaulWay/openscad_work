@@ -1,33 +1,4 @@
-module torus(outer, inner) 
-    rotate_extrude() {
-        translate([outer-inner, 0, 0]) circle(r=inner);
-    }
-
-module pipe_rt(height, radius, thickness)
-    difference() {
-        cylinder(height, radius, radius);
-        translate([0, 0, -0.05]) cylinder(height+0.1, radius - thickness, radius - thickness);
-    }
-
-module pipe_oi(height, o_radius, i_radius)
-    difference() {
-        cylinder(h=height, r=o_radius);
-        translate([0, 0, -0.05]) cylinder(h=height+0.1, r=i_radius);
-    }
-
-module cone_rt(height, bottom_radius, top_radius, thickness)
-    difference() {
-        cylinder(height, bottom_radius, top_radius);
-        translate([0, 0, -0.05]) 
-          cylinder(height+0.1, bottom_radius - thickness, top_radius - thickness);
-    }
-
-module cone_oi(height, bottom_o_radius, top_o_radius, bottom_i_radius, top_i_radius)
-    difference() {
-        cylinder(height, bottom_o_radius, top_o_radius);
-        translate([0, 0, -0.05]) 
-          cylinder(height+0.1, bottom_i_radius, top_i_radius);
-    }
+include <pw_primitives.scad>;
 
 // AEG sander fitting diameters
 d1=34.25; r1=d1/2;
@@ -47,7 +18,7 @@ twist=1; // set to -1 for other direction
 t1=r2-r1;   // Thickness of wall
 br=2.5;     // Locking ball radius
 ba=15;      // Locking ball channel angle
-// Hose attachment diameters
+// Hose attachment diameters and radii
 dhi=34; rhi=dhi/2; 
 dho=38; rho=dho/2;
 spike_thick=1;  // Extra protrusion of 'spike' holding hose in place.

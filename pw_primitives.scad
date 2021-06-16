@@ -7,15 +7,6 @@ module hollow_cube(length, width, height, wall_t) {
     }
 }
 
-module hollow_cylinder(width, height, wall_t) {
-    difference() {
-        two_t = wall_t*2;
-        cylinder(h=height, r=width/2);
-        translate([0, 0, -0.1])
-          cylinder(h=height+0.2, r=(width-two_t)/2);
-    }
-}
-
 module rounded_box(length, width, height, outer_r, inner_r, thickness) {
     outer_d = outer_r*2;
     inner_t = thickness+inner_r;
@@ -43,6 +34,8 @@ module ring_rt(height, radius, thickness) { difference() {
     translate([0, 0, -0.05]) 
       cylinder(h=height+0.1, r=max(radius-thickness, 0));
 }};
+module pipe_rt(height, radius, thickness) ring_rt(height, radius, thickness);
+module hollow_cylinder(width, height, wall_t) ring_rt(height, width, wall_t);
 
 module ring_oi(height, o_radius, i_radius) { difference() {
     // For when you know the outer and inner radius but not the wall thickness.
@@ -50,6 +43,7 @@ module ring_oi(height, o_radius, i_radius) { difference() {
     translate([0, 0, -0.05]) 
       cylinder(h=height+0.1, r=i_radius);   
 }};
+module pipe_oi(height, o_radius, i_radius) ring_oi(height, o_radius, i_radius);
 
 module hollow_cone_rt(height, bottom_radius, top_radius, thickness) { difference() {
     // For when you know the outer radii and the wall thickness.
@@ -68,3 +62,10 @@ module hollow_cone_oi(
     translate([0, 0, -0.05]) 
       cylinder(h=height+0.1, r1=i_bot_radius, r2=i_top_radius);
 }};
+module cone_oi(height, bottom_o_radius, top_o_radius, bottom_i_radius, top_i_radius)
+  hollow_cone_oi(height, bottom_o_radius, bottom_i_radius, top_o_radius, top_i_radius);
+
+module torus(outer, inner)
+    rotate_extrude() {
+        translate([max(outer-inner, 0), 0, 0]) circle(r=inner);
+    }

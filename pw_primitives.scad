@@ -65,7 +65,7 @@ module hollow_cone_oi(
 module cone_oi(height, bottom_o_radius, top_o_radius, bottom_i_radius, top_i_radius)
   hollow_cone_oi(height, bottom_o_radius, bottom_i_radius, top_o_radius, top_i_radius);
 
-module torus(outer, inner)
-    rotate_extrude() {
+module torus(outer, inner, angle=360)
+    rotate_extrude(angle=angle) {
         translate([max(outer-inner, 0), 0, 0]) circle(r=inner);
-    }
+    };

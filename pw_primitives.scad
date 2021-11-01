@@ -69,3 +69,31 @@ module torus(outer, inner, angle=360)
     rotate_extrude(angle=angle) {
         translate([max(outer-inner, 0), 0, 0]) circle(r=inner);
     };
+
+module conduit_angle_bend(
+    bend_radius, pipe_radius, bend_angle, thickness, join_length, overlap_len,
+    flange_a=true, flange_b=true
+) {
+    // A piece of conduit with a pipe outer radius (not diameter) and wall
+    // thickness, curving around a bend angle at a bend radius from the centre
+    // of the circle.  The two ends can have straight flanges (a flange allows
+    // a pipe of pipe radius to fit inside it) with a join length, overlapping
+    // into the angle bend for a given length.  The flanges can be disabled, which
+    // will result in a smaller piece of straight pipe of the given radius and
+    // wall thickness (with no overlap).
+
+    // The actual bend
+    difference() {
+        torus(bend_radius+thickness, pipe_radius, bend_angle);
+        rotate([0, 0, -0.1]) torus(bend_radius, pipe_radius-thickness, bend_angle+0.2);
+    };
+    // First flange
+    translate([bend_radius-pipe_radius+thickness, (flange_a ? overlap_len : 0), 0])
+    rotate([90, 0, 0])
+    ring_rt(join_length, pipe_radius+(flange_a ? thickness : 0), thickness);
+    // Second flange (taken around the angle)
+    rotate([0, 0, bend_angle])
+    translate([bend_radius-pipe_radius+thickness, join_length-(flange_b ? overlap_len : 0), 0])
+    rotate([90, 0, 0])
+    ring_rt(join_length, pipe_radius+(flange_b ? thickness : 0), thickness);
+}

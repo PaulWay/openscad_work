@@ -97,3 +97,40 @@ module conduit_angle_bend(
     rotate([90, 0, 0])
     ring_rt(join_length, pipe_radius+(flange_b ? thickness : 0), thickness);
 }
+
+module spring(spring_r, wire_r, rise_per_rev, turns, step_deg) {
+    // A spring of radius spring_r made of wire of radius wire_r, that goes
+    // (fractional) turns around, modeled as sphere at each 'node', and a
+    // cylinder between each node.  If rise_per_rev is negative, spiral goes
+    // 'down' - i.e. is left-handed, rather than right-handed
+    assert(turns>0, "turns must be positive");
+    assert(step_deg>0, "step_deg must be positive");
+    // start on X axis at zero.
+    x = spring_r; y = 0; z = 0;
+    translate([x, y, z]) sphere(r=wire_r);
+    // each complete turn (360deg) goes up one rise_per_rev
+    z_factor = rise_per_rev / 360;
+    // z angle for each step
+    spring_circ = (spring_r*2*PI);
+    z_angle = atan(rise_per_rev / spring_circ);
+    // step_len is the length of the cylinder joining each node; it's the
+    // spiral length of each turn divided by 360/step_deg.
+    one_turn_len = sqrt(rise_per_rev*rise_per_rev + spring_circ*spring_circ);
+    step_len = one_turn_len / (360/step_deg);
+    for(angle = [0 : step_deg : turns*360]) {
+        // the 'next' point around the spiral
+        xn = spring_r * cos(angle);
+        yn = spring_r * sin(angle);
+        zn = (angle/360) * rise_per_rev;
+        // The sphere node is easy:
+        translate([xn, yn, zn]) sphere(r=wire_r);
+        // The cylinder joining them is more complicated.  Start with cylinder
+        // of step_len, rotate it down to point a step up in Z, then rotate it
+        // around Z to point from [x,y,z] to [xn,yn,zn], then move it to [x,y,z]
+        if (angle < turns*360) {
+            translate([x, y, z]) rotate([0, 0, 90+(angle+step_deg/2)])
+                rotate([0, 90-z_angle, 0]) cylinder(h=step_len, r=wire_r);
+        }
+        x = xn; y = yn; z = zn;
+    }
+}

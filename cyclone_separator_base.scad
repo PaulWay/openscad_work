@@ -55,15 +55,22 @@ module cyclone_lid(inlet_diam, wall_thick) {
     // outside and two walls protecting the outlet.
     inlet_r = inlet_diam/2;
     torus_outer_r = inlet_r*3+wall_thick*2;
+    z_angle = atan(inlet_diam / (inlet_diam+wall_thick)*2*PI);
     difference() {
         // top cap is a quarter-torus, on a cylinder, with a cylinder inside.
         union() {
+            // outlet
             cylinder(h=inlet_diam+wall_thick*2, d=inlet_diam+wall_thick);
+            // base
             cylinder(h=inlet_r+wall_thick, r=torus_outer_r);
+            // top
             translate([0, 0, inlet_r+wall_thick]) intersection() {
                 torus(torus_outer_r, inlet_r+wall_thick);
                 cylinder(h=inlet_r+wall_thick, r=torus_outer_r);
             };
+            // inlet
+            translate([-(inlet_diam+wall_thick), 0, inlet_r]) rotate([z_angle, 0, 0])
+                cylinder(h=inlet_r*3, r=inlet_r+wall_thick);
         }
         // Spiral inside the cap for the airflow - mirrored and negative
         // spiral to put the inlet at the right place.
@@ -73,8 +80,7 @@ module cyclone_lid(inlet_diam, wall_thick) {
         // inlet - cylinder starts off 'standing on' Z axis, is rotated around
         // X axis so it's at the same angle as the spiral, and then translated
         // to the right start point for the spiral
-        z_angle = atan(inlet_diam / (inlet_diam+wall_thick)*2*PI);
-        # translate([-(inlet_diam+wall_thick), 0, inlet_r]) rotate([z_angle, 0, 0])
+        translate([-(inlet_diam+wall_thick), 0, inlet_r]) rotate([z_angle, 0, 0])
             cylinder(h=inlet_r*3+4, r=inlet_r);
         // outlet
         translate([0, 0, -0.1]) cylinder(h=inlet_r+wall_thick+0.2, d=inlet_diam);

@@ -133,3 +133,23 @@ module spring(spring_r, wire_r, rise_per_rev, turns, step_deg) {
         x = xn; y = yn; z = zn;
     }
 }
+
+module countersunk_bolt_hole(shaft_d, shaft_len, head_d, head_len) {
+    // The solid area taken up by a countersunk bolt, to be subtracted
+    // from a body to make a screw hole.  The bolt is 'pointing down' and is
+    // centred on the Z axis.
+    union() {
+        cylinder(h=shaft_len, d=shaft_d);
+        translate([0, 0, shaft_len-0.01]) cylinder(h=head_len, d1=shaft_d, d2=head_d);
+    }
+}
+
+module flat_head_bolt_hole(shaft_d, shaft_len, head_d, head_len) {
+    // The solid area taken up by a flat-head bolt, to be subtracted
+    // from a body to make a screw hole.  The bolt is 'pointing down' and is
+    // centred on the Z axis.
+    union() {
+        cylinder(h=shaft_len, d=shaft_d);
+        translate([0, 0, shaft_len-0.01]) cylinder(h=head_len+0.01, d=head_d);
+    }
+}

@@ -7,11 +7,15 @@ module hollow_cube(length, width, height, wall_t) {
     }
 }
 
-module rounded_box(length, width, height, outer_r, inner_r, thickness) {
+module rounded_box(length, width, height, outer_r) {
+    // A simple solid box with rounded bottom and side edges.
+    // Essentially this is a box with spherical corners and cylindrical
+    // edges on the outside.  You can then subtract whatever object you want
+    // from it to make it hollow if you like.
+    // Parameters are: the external length, width and height,
+    // the radius of the corners and edges.
     outer_d = outer_r*2;
-    inner_t = thickness+inner_r;
-    inner_d = outer_d+inner_t*2;
-    translate([outer_r, outer_r, outer_r]) difference() {
+    union() translate([outer_r, outer_r, outer_r]) difference() {
         // outer rounded rectangle
         minkowski() {
             cube([length-outer_d, width-outer_d, height-outer_r]);
@@ -20,11 +24,6 @@ module rounded_box(length, width, height, outer_r, inner_r, thickness) {
         // top face
         translate([-outer_r, -outer_r, height-outer_r]) 
           cube([length+2*outer_r, width+2*outer_r, outer_r]);
-        // inner rounded rectangle
-        translate([inner_t, inner_t, inner_t]) minkowski() {
-            cube([length-inner_d, width-inner_d, height]);
-            sphere(r=inner_r);
-        };
     }
 }
 
@@ -102,12 +101,12 @@ module spring(spring_r, wire_r, rise_per_rev, turns, step_deg) {
     // A spring of radius spring_r made of wire of radius wire_r, that goes
     // (fractional) turns around, modeled as sphere at each 'node', and a
     // cylinder between each node.  If rise_per_rev is negative, spiral goes
-    // 'down' - i.e. is left-handed, rather than right-handed
+    // 'down' - i.e. is left-handed, rather than right-handed.  If turns is
+    // not evenly divisible by step_deg, the final sphere will not be added.
     assert(turns>0, "turns must be positive");
     assert(step_deg>0, "step_deg must be positive");
     // start on X axis at zero.
     x = spring_r; y = 0; z = 0;
-    translate([x, y, z]) sphere(r=wire_r);
     // each complete turn (360deg) goes up one rise_per_rev
     z_factor = rise_per_rev / 360;
     // z angle for each step

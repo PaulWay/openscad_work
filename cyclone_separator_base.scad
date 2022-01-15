@@ -60,7 +60,7 @@ module cyclone_lid(inlet_diam, wall_thick) {
         // top cap is a quarter-torus, on a cylinder, with a cylinder inside.
         union() {
             // outlet
-            cylinder(h=inlet_diam+wall_thick*2, d=inlet_diam+wall_thick);
+            cylinder(h=inlet_diam+wall_thick*2, d=inlet_diam+wall_thick*2);
             // base
             cylinder(h=inlet_r+wall_thick, r=torus_outer_r);
             // top
@@ -83,7 +83,8 @@ module cyclone_lid(inlet_diam, wall_thick) {
         translate([-(inlet_diam+wall_thick), 0, inlet_r]) rotate([z_angle, 0, 0])
             cylinder(h=inlet_r*3+4, r=inlet_r);
         // outlet
-        translate([0, 0, -0.1]) cylinder(h=inlet_r+wall_thick+0.2, d=inlet_diam);
+        translate([0, 0, -0.1]) 
+            cylinder(h=inlet_diam+wall_thick*2+0.2, d=inlet_diam);
     }
 }
 

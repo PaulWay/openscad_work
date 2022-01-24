@@ -64,6 +64,34 @@ module hollow_cone_oi(
 module cone_oi(height, bottom_o_radius, top_o_radius, bottom_i_radius, top_i_radius)
   hollow_cone_oi(height, bottom_o_radius, bottom_i_radius, top_o_radius, top_i_radius);
 
+module half_cylinder(height, radius) {
+    // Half of a cylinder of the given height and radius in the positive X, so
+    // starting from -Y radius to +Y radius.
+    intersection() {
+        cylinder(h=height, r=radius);
+        translate([0, -radius, 0]) cube([radius, radius*2, height]);
+    }
+};
+
+module cylinder_segment(height, radius, angle=360) {
+    // A cylindrical arc segment of the given height and radius, starting
+    // from 0 degrees (along the -Y axis) and rotating anti-clockwise around
+    // the given angle.
+    if (angle < 180) {
+        // make up out of the intersection of two half cylinders
+        intersection() {
+            half_cylinder(height, radius);
+            rotate([0, 0, -(180-angle)]) half_cylinder(height, radius);
+        };
+    } else {
+        // make up of the union of two half cylinders
+        union() {
+            half_cylinder(height, radius);
+            rotate([0, 0, -(180-angle)]) half_cylinder(height, radius);
+        };
+    };
+}
+
 module torus(outer, inner, angle=360)
     rotate_extrude(angle=angle) {
         translate([max(outer-inner, 0), 0, 0]) circle(r=inner);

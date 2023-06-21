@@ -8,7 +8,7 @@ usb_x_start = 9;
 usb_y_start = 1;
 board_bottom_thick = 4;
 board_height = usb_height + board_bottom_thick;
-in_margin = 2;
+in_margin = 3;
 wall_thick = 4;
 outer_r = 4;
 
@@ -18,17 +18,18 @@ out_length = in_length + wall_thick * 2;
 out_width = in_width + wall_thick * 2;
 // echo("total length:", out_length, "total width:", out_width);
 box_height = board_height + wall_thick;
+test_height = wall_thick + 2;
 lid_height = wall_thick * 2;
 
 // xy coords relative to board
 bb_hole_1_x = 3; 
 bb_hole_1_y = 2.15;
-bb_hole_2_x = 4.7;
-bb_hole_2_y = 32;
-bb_hole_3_x = 42.15;
-bb_hole_3_y = 3.85;
-bb_hole_4_x = 44.75;
-bb_hole_4_y = 32.5;
+bb_hole_2_x = 4.7; // orig = 4.7;
+bb_hole_2_y = 31; // orig = 32;
+bb_hole_3_x = 44.15; // orig = 42.15;
+bb_hole_3_y = 2.85; // orig = 3.85;
+bb_hole_4_x = 43.75; // orig = 44.75;
+bb_hole_4_y = 32.5; // orig = 32.5;
 board_bolt_shaft_d = 3;
 board_bolt_shaft_l = wall_thick;
 board_bolt_head_d = 6;
@@ -99,8 +100,10 @@ difference() {
     cube([out_length, out_width, box_height-0.001]);
     // inside
     translate([wall_thick, wall_thick, wall_thick]) {
-        cube([in_length, in_width, box_height+10]);
+        cube([in_length, in_width, box_height]);
     };
+    // lop the top off
+    // translate([-0.1, -0.1, 10]) cube([out_length+0.2, out_width+0.2, box_height]);
     // front entrance for USB ports
     translate([wall_thick+in_margin+usb_x_start, -0.01, wall_thick+board_bottom_thick])
         cube([usb_width, wall_thick+0.02, usb_height]);
@@ -123,14 +126,15 @@ difference() {
 }
 
 // translate([0, 0, box_height])
-translate([out_length/2, out_width+10, 0]) rotate([0, 180, 0]) translate([-out_length/2, 0, 0])
-translate([0, 0, -(lid_height+wall_thick)]) union() {
+translate([out_length/2, out_width+10, 0]) rotate([0, 180, 0]) translate([-out_length/2, 0, 0]) 
+! translate([0, 0, -(lid_height)]) union() {
     // whole of lid top - because 'rounded_box' has a rounded bottom and
     // squared-off top, we mirror it around to be in the right relationship
     // with the other parts of the lid.
     difference() {
-        translate([0, 0, lid_height+wall_thick]) mirror([0, 0, 1])
+        translate([0, 0, lid_height+wall_thick-0.01]) mirror([0, 0, 1])
             rounded_box(out_length, out_width, wall_thick+0.01, outer_r);
+            // cube([out_length, out_width, wall_thick]);
         // holes to hold lid onto box
         lid_bolt_hole(lid_hole_1_x, lid_hole_1_y);
         lid_bolt_hole(lid_hole_2_x, lid_hole_2_y);
@@ -138,6 +142,6 @@ translate([0, 0, -(lid_height+wall_thick)]) union() {
         lid_bolt_hole(lid_hole_4_x, lid_hole_4_y);
     };
     // USB topper
-    translate([wall_thick+in_margin+usb_x_start, -0.01, wall_thick])
-        cube([usb_width, wall_thick+0.02, wall_thick]);
+    // translate([wall_thick+in_margin+usb_x_start, -0.01, wall_thick])
+    //     cube([usb_width, wall_thick+0.02, wall_thick]);
 }

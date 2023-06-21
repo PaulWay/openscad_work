@@ -22,6 +22,7 @@ slot_width = 10;
 // do _that_, we need to have two tang / mortise joins somewhere else
 // symmetrical - I've chosen 90 / 270 degrees.  The tangs are 1 degree thinner
 // than the mortises to allow for print inaccuracy.
+$fn = 50;
 
 difference() {
     // the main cylinder, plus the joining tangs
@@ -32,16 +33,18 @@ difference() {
         rotate([0, 0, 270])
             cylinder_segment(inner_r+join_height, inner_r/2+join_thick, 90);
     }
-    // minus the torus around the outside
-    translate([0, 0, inner_r]) torus(outer_r, inner_r-wall_thick);
-    // and the inner hole
-    translate([0, 0, -0.01]) cylinder(h=inner_r+join_height+0.02, d=inner_r);
-    // and the mortises for the joining tang
-    translate([0, 0, inner_r-join_height]) rotate([0, 0, 0])
-        cylinder_segment(join_height+1, inner_r/2+join_thick, 90);
-    translate([0, 0, inner_r-join_height]) rotate([0, 0, 179])
-        cylinder_segment(join_height+1, inner_r/2+join_thick, 91);
-    // and the slot to let it fit onto the side of the tank
-    translate([-slot_width/2, -(outer_r-inner_r), -0.01])
-        cube([slot_width, 0.01+outer_r-inner_r, inner_r+0.02+join_height]);
+    union() {
+        // minus the torus around the outside
+        translate([0, 0, inner_r]) torus(outer_r, inner_r-wall_thick);
+        // and the inner hole
+        translate([0, 0, -0.01]) cylinder(h=inner_r+join_height+0.02, d=inner_r);
+        // and the mortises for the joining tang
+        translate([0, 0, inner_r-join_height-0.01]) rotate([0, 0, 90]) 
+            cylinder_segment(join_height+1, inner_r/2+join_thick, 90);
+        translate([0, 0, inner_r-join_height]) rotate([0, 0, 270]) 
+            cylinder_segment(join_height+1, inner_r/2+join_thick, 90);
+        // and the slots to let it fit onto the side of the tank
+        translate([-slot_width/2, -(outer_r-inner_r), -0.01])
+            cube([slot_width, outer_r-inner_r, inner_r+join_height+0.02]);
+    }
 }

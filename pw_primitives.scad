@@ -181,3 +181,14 @@ module flat_head_bolt_hole(shaft_d, shaft_len, head_d, head_len) {
         translate([0, 0, shaft_len-0.01]) cylinder(h=head_len+0.01, d=head_d);
     }
 }
+
+module hexagon(radius, height) {
+    // A hexagon centred on the origin, with points on the X axis
+    radius2 = radius*sin(30);
+    radius3 = radius*sin(60);
+    linear_extrude(height)
+    polygon([  // going anticlockwise
+        [radius, 0], [radius2, radius3], [-radius2, radius3], 
+        [-radius, 0], [-radius2, -radius3], [radius2, -radius3],
+    ]);
+}

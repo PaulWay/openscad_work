@@ -27,6 +27,20 @@ module rounded_box(length, width, height, outer_r) {
     }
 }
 
+module chamfered_cube(x, y, z, side, chamfer_x=true, chamfer_y=true, chamfer_z=true) {
+    // A simple solid box, chamfered on all sides.
+    s2=side*2;
+    xoff = chamfer_x ? side : 0; xsub = chamfer_x ? s2 : 0;
+    yoff = chamfer_y ? side : 0; ysub = chamfer_y ? s2 : 0;
+    zoff = chamfer_z ? side : 0; zsub = chamfer_z ? s2 : 0;
+    
+    hull() {
+        translate([xoff, yoff, 0]) cube([x-xsub, y-ysub, z]);
+        translate([xoff, 0, zoff]) cube([x-xsub, y, z-zsub]);
+        translate([0, yoff, zoff]) cube([x, y-ysub, z-zsub]);
+    }
+}
+
 module ring_rt(height, radius, thickness) { difference() {
     // For when you know the outer radius and the wall thickness.
     cylinder(h=height, r=radius);

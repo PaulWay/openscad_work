@@ -78,6 +78,15 @@ module hollow_cone_oi(
 module cone_oi(height, bottom_o_radius, top_o_radius, bottom_i_radius, top_i_radius)
   hollow_cone_oi(height, bottom_o_radius, bottom_i_radius, top_o_radius, top_i_radius);
 
+module rectangular_tube(x, y, thickness, height) {
+    // thickness is added to x and y
+    difference() {
+        cube([x+thickness*2, y+thickness*2, height]);
+        translate([thickness, thickness, -0.01]) cube([x, y, height+0.02]);
+    }
+};
+
+
 module half_cylinder(height, radius) {
     // Half of a cylinder of the given height and radius in the positive X, so
     // starting from -Y radius to +Y radius.
@@ -107,9 +116,60 @@ module cylinder_segment(height, radius, angle=360) {
 }
 
 module torus(outer, inner, angle=360)
+    // a torus whose ring is a circle of outer-inner radius, 
+    // centred on a circle of outer radius.
     rotate_extrude(angle=angle) {
         translate([max(outer-inner, 0), 0, 0]) circle(r=inner);
     };
+
+
+module rectangular_torus(outer, inner, height, angle=360) {
+    // a torus from inner radius to outer radius - thickness is
+    // outer-inner - and height in z.
+    rotate_extrude(angle=angle) {
+        translate([inner, 0, 0]) square([outer-inner, height]);
+    }
+}
+
+
+module rectangular_pipe_bend(
+    width, height, thickness, inner_radius, bend_angle, join_length,
+    overlap_len, flange_a=true, flange_b=true
+) {
+    // a rectangular pipe of inner measurements width * height, bent around
+    // inner_radius, with walls of thickness.  Pipe is on XY plane, starting
+    // from +xz plane.
+    // main bend
+    translate([0, join_length, 0]) difference() {
+        rectangular_torus(
+          width+inner_radius+thickness*2, inner_radius, 
+          height+thickness*2, bend_angle
+        );
+        translate([0, -0.01, thickness]) rectangular_torus(
+          width+inner_radius+thickness, inner_radius+thickness, 
+          height, bend_angle+0.01
+        );
+    }
+    // flange a
+    fa_thick = flange_a ? thickness : 0;
+    translate([inner_radius-fa_thick, 0, -fa_thick]) difference() {
+        cube([width+fa_thick*2 + thickness*2, join_length+overlap_len, height+fa_thick*2 + thickness*2]);
+        translate([thickness, -0.01, thickness])
+          cube([width+fa_thick*2, join_length+overlap_len+0.02, height+fa_thick*2]);
+    }
+    // flange b
+    fb_thick = flange_b ? thickness : 0;
+    translate([0, join_length, 0]) rotate([0, 0, bend_angle]) 
+      translate([inner_radius-fb_thick, 0, -fb_thick]) difference() {
+        cube([
+          width+fb_thick*2 + thickness*2, join_length+overlap_len, 
+          height+fb_thick*2 + thickness*2
+        ]);
+        translate([thickness, -0.01, thickness])
+          cube([width+fb_thick*2, join_length+overlap_len+0.02, height+fb_thick*2]);
+    }
+}
+
 
 module conduit_angle_bend(
     bend_radius, pipe_radius, bend_angle, thickness, join_length, overlap_len,

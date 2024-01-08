@@ -20,6 +20,8 @@ hinge_overlap_len = (handle_thick) / tan(main_angle);
 handle_angle = atan2((outer_dia-handle_wid)/2, handle_len);
 support_start = washer_offset+washer_thick;
 
+// translate([-10, -40, -1]) cube([150, 80, 1]);
+
 union() {
     difference() {
         // the handle
@@ -31,11 +33,8 @@ union() {
         // hole for pusher to go through
         translate([0, 0, -0.01]) cylinder(d=pusher_dia+tolerance, h=handle_thick+0.02);
         // cutout for washer, up to top of handle
-        translate([0, 0, washer_offset]) hull() {
-            cylinder(d=washer_dia, h=(handle_thick-washer_offset)+0.01);
-            translate([-washer_dia/2, 0, 0]) 
-              cylinder(d=washer_dia, h=(handle_thick-washer_offset)+0.01);
-        };
+        translate([0, 0, washer_offset]) 
+          cylinder(d=washer_dia, h=(handle_thick-washer_offset)+0.01);
         // the cutout for the tube and support
         translate([0, 0, support_start]) union() {
             cylinder(d=outer_dia+tolerance, h=handle_thick-support_start+0.02);
@@ -95,6 +94,6 @@ translate([0, -20, -(handle_thick-support_start)]) difference() {
         translate([support_offset, 0, 0]) 
           cylinder(d=support_dia, h=support_thick);
     };
-    translate([-(outer_rad+0.01), -(outer_rad+0.01), -0.01]) 
+    translate([-(outer_rad+0.01), -(outer_rad), -0.01]) 
        cube([outer_dia+support_offset+support_dia, outer_dia, handle_thick-support_start]);
 }

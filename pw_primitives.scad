@@ -2,7 +2,7 @@ module hollow_cube(length, width, height, wall_t) {
     difference() {
         two_t = wall_t*2;
         cube([length, width, height]);
-        translate([wall_t, wall_t, -0.1]) 
+        translate([wall_t, wall_t, -0.1])
           cube([length-two_t, width-two_t, height+0.2]);
     }
 }

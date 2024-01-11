@@ -1,4 +1,14 @@
-$fn=45;
+/*
+Red Hat Service Award ('puck') holder.
+
+Model by Paul Wayper, copyright January 2024.
+
+Licensed for reuse under the Creative Commons 4.0 By-SA license:
+
+https://creativecommons.org/licenses/by-sa/4.0/
+*/
+
+$fn=90;
 
 difference() {
     // the main block

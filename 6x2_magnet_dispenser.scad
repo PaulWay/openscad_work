@@ -24,12 +24,12 @@ tube_x_offset = body_wid/2+magnet_dia; tube_y_offset = 30;
 tube_thick = 30;  tube_outer_dia = 12;  tube_inner_dia = magnet_dia+tolerance*2;
 switcher_len = body_wid - switcher_x_offset + text_len;
 slider_z_offset = body_z_wall + switcher_thick + tolerance;
-peg_dia = 2.4;  peg_height = 2;
+peg_dia = 2.4;  peg_height = 1.6;
 peg_x_offset = 0.5; peg_y_offset = 2; peg_tol = 0.25;
 peg_x = slider_wid/2 - peg_x_offset + peg_dia;
 peg_y = body_len/2 - peg_y_offset - peg_dia;
 
-// pegs inside the corners of a box from -x,-y to x,y
+// pegs at the corners of a box from -x,-y to x,y
 module pegs(x, y, r, h) {
     translate([ x,  y, 0]) cylinder(r=r, h=h);
     translate([-x,  y, 0]) cylinder(r=r, h=h);
@@ -62,7 +62,7 @@ union() {
 translate([-30, 0, 0]) difference() {
     // the base and outer tube
     translate([0, 0, -(slider_z_offset+slider_thick+tolerance*2)]) union() {
-        translate([body_wid/2, tube_y_offset+tube_outer_dia/2, 0]) 
+        translate([body_wid/2, tube_y_offset+switcher_wid/2, 0]) 
           cylinder(h=tube_thick, d=tube_outer_dia);
         chamfered_cube(body_wid, body_len, body_thick, body_chamfer, chamfer_y=false);
     }
@@ -70,11 +70,11 @@ translate([-30, 0, 0]) difference() {
     translate([-eps, -eps, -body_thick]) 
       cube([body_wid+eps*2, body_len+eps*2, body_thick]);
     // The feeder tube
-    translate([body_wid/2, tube_y_offset+tube_outer_dia/2, -eps]) 
+    translate([body_wid/2, tube_y_offset+switcher_wid/2, -eps]) 
       cylinder(h=tube_thick+1, d=tube_inner_dia);
     // the pegs, removed
     translate([body_wid/2, body_len/2, -eps]) 
-      pegs(peg_x, peg_y, peg_dia/2, peg_height+tolerance+eps);
+      pegs(peg_x, peg_y, peg_dia/2+peg_tol, peg_height+peg_tol+eps);
 }
 
 // reversible magnet holder - slide into the side, pull out to flip upside down

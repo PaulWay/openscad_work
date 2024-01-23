@@ -1,6 +1,10 @@
 epsilon = 0.01;
 epsilo2 = epsilon*2;
 
+////////////////////////////////////////////////////////////////////////////////
+// SIMPLE CUBE MODULES
+////////////////////////////////////////////////////////////////////////////////
+
 module hollow_cube(length, width, height, wall_t) {
     difference() {
         two_t = wall_t*2;
@@ -18,7 +22,7 @@ module rounded_box(length, width, height, outer_r) {
     // Parameters are: the external length, width and height,
     // the radius of the corners and edges.
     outer_d = outer_r*2;
-    union() translate([outer_r, outer_r, outer_r]) difference() {
+    translate([outer_r, outer_r, outer_r]) difference() {
         // outer rounded rectangle
         minkowski() {
             cube([length-outer_d, width-outer_d, height-outer_r]);
@@ -43,6 +47,10 @@ module chamfered_cube(x, y, z, side, chamfer_x=true, chamfer_y=true, chamfer_z=t
         translate([0, yoff, zoff]) cube([x, y-ysub, z-zsub]);
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// RINGS AND CONES
+////////////////////////////////////////////////////////////////////////////////
 
 module pipe_rt(height, radius, thickness) { difference() {
     // For when you know the outer radius and the wall thickness.
@@ -76,6 +84,10 @@ module hollow_cone_oi(
       cylinder(h=height+epsilo2, r1=i_bot_radius, r2=i_top_radius);
 }};
 
+////////////////////////////////////////////////////////////////////////////////
+// CYLINDER SEGMENTS
+////////////////////////////////////////////////////////////////////////////////
+
 module half_cylinder(height, radius) {
     // Half of a cylinder of the given height and radius in the positive X, so
     // starting from -Y radius to +Y radius.
@@ -104,6 +116,10 @@ module cylinder_segment(height, radius, angle=360) {
     };
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// TOROIDS AND PIPE BENDS
+////////////////////////////////////////////////////////////////////////////////
+
 module torus(outer, inner, angle=360)
     // a torus whose ring is a circle of outer-inner radius, 
     // centred on a circle of outer radius.
@@ -112,80 +128,31 @@ module torus(outer, inner, angle=360)
     };
 
 
-module rectangular_tube(x, y, thickness, height) {
-    // thickness is added to x and y
-    difference() {
-        cube([x+thickness*2, y+thickness*2, height]);
-        translate([thickness, thickness, -epsilon]) cube([x, y, height+epsilo2]);
-    }
-};
-
-module rectangular_cone(x1, y1, x2, y2, height) {
-    // A symmetrical rectangular cone, from -x1,-y1 to x1,y1 on the XY plane
-    // and from -x2,-y2 to x2,y2 at height.  This is not really a 'cone'
-    // because the x and y can vary independently - i.e. the slope of the X faces
-    // can be different from the Y faces, if x1 > x2 but y1 < y2 say.
-    polyhedron(points=[ // points
-        [-x1, -y1, 0], [x1, -y1, 0], [x1, y1, 0], [-x1, y1, 0],
-        [-x2, -y2, height], [x2, -y2, height], [x2, y2, height], [-x2, y2, height]
-    ], faces=[ // faces - clockwise facing in, right hand rule
-        [0, 1, 2, 3], // bottom
-        [0, 4, 5, 1], // -y face
-        [1, 5, 6, 2], // +x face
-        [2, 6, 7, 3], // +y face
-        [3, 7, 4, 0], // -x face
-        [4, 7, 6, 5]  // top
-    ], convexity=1);
-};
-
-
-module rectangular_torus(outer, inner, height, angle=360) {
-    // a torus from inner radius to outer radius - thickness is
-    // outer-inner - and height in z.
-    rotate_extrude(angle=angle) {
-        translate([inner, 0, 0]) square([outer-inner, height]);
+module quarter_torus_bend_snub_end(outer_rad, width, angle, outer=true) {
+    // A torus's upper quarter - inner or outer depending on the 'outer' setting
+    // - of a given outer_rad distance from the centre of the torus to the right
+    // angle in the quadrant, that is a given width high and wide, stretching an
+    // angle around the circle.
+    // In other words, a quarter-circle shaped piece wrapped around the outside
+    // or inside (again if cut_outer is false, or true, respectively).  The
+    // 'front' and 'back' of the piece end in spheres to make it a bit
+    // 'aerodynamic'.
+    intersection() {
+        union() {
+            torus(outer_rad+width, width, angle);
+            rotate([0, 0, 0]) translate([outer_rad, 0, 0]) sphere(r=width);
+            rotate([0, 0, angle]) translate([outer_rad, 0, 0]) sphere(r=width);
+        }
+        if (outer) {
+            difference() {
+                translate([0, 0, 0]) cylinder(h=width+epsilon, r=outer_rad+width);
+                translate([0, 0, -epsilon]) cylinder(h=width+epsilo2, r=outer_rad);
+            }
+        } else {
+            translate([0, 0, -epsilon]) cylinder(h=width+epsilon, r=outer_rad);
+        }
     }
 }
-
-
-module rectangular_pipe_bend(
-    width, height, thickness, inner_radius, bend_angle, join_length,
-    overlap_len, flange_a=true, flange_b=true
-) {
-    // a rectangular pipe of inner measurements width * height, bent around
-    // inner_radius, with walls of thickness.  Pipe is on XY plane, starting
-    // from +xz plane.
-    // main bend
-    translate([0, join_length, 0]) difference() {
-        rectangular_torus(
-          width+inner_radius+thickness*2, inner_radius, 
-          height+thickness*2, bend_angle
-        );
-        translate([0, -0.01, thickness]) rectangular_torus(
-          width+inner_radius+thickness, inner_radius+thickness, 
-          height, bend_angle+0.01
-        );
-    }
-    // flange a
-    fa_thick = flange_a ? thickness : 0;
-    translate([inner_radius-fa_thick, 0, -fa_thick]) difference() {
-        cube([width+fa_thick*2 + thickness*2, join_length+overlap_len, height+fa_thick*2 + thickness*2]);
-        translate([thickness, -0.01, thickness])
-          cube([width+fa_thick*2, join_length+overlap_len+0.02, height+fa_thick*2]);
-    }
-    // flange b
-    fb_thick = flange_b ? thickness : 0;
-    translate([0, join_length, 0]) rotate([0, 0, bend_angle]) 
-      translate([inner_radius-fb_thick, 0, -fb_thick]) difference() {
-        cube([
-          width+fb_thick*2 + thickness*2, join_length+overlap_len, 
-          height+fb_thick*2 + thickness*2
-        ]);
-        translate([thickness, -0.01, thickness])
-          cube([width+fb_thick*2, join_length+overlap_len+0.02, height+fb_thick*2]);
-    }
-}
-
 
 module conduit_angle_bend_straight_join(
     bend_radius, pipe_radius, bend_angle, thickness, join_length, overlap_len,
@@ -235,6 +202,138 @@ module conduit_angle_bend_straight_join(
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// RECTANGULAR TUBES AND TOROIDS
+////////////////////////////////////////////////////////////////////////////////
+
+module rectangular_pipe(width, height, thickness, length) difference() {
+    // a rectangular pipe of OUTER width (X) and height (Z), with walls of thickness,
+    // going in the Y direction.
+    cube([width, length, height]);
+    translate([thickness, -epsilon, thickness]) cube([
+      width-thickness*2, length+epsilo2, height-thickness*2
+    ]);
+}
+
+module rectangular_tube(x, y, thickness, height) {
+    // x and y are INNER widths, and tube goes in the Z direction like a cylinder.
+    difference() {
+        cube([x+thickness*2, y+thickness*2, height]);
+        translate([thickness, thickness, -epsilon]) cube([x, y, height+epsilo2]);
+    }
+}
+
+module rectangular_cone(x1, y1, x2, y2, height) {
+    // A symmetrical rectangular cone, from -x1,-y1 to x1,y1 on the XY plane
+    // and from -x2,-y2 to x2,y2 at height.  This is not really a 'cone'
+    // because the x and y can vary independently - i.e. the slope of the X faces
+    // can be different from the Y faces, if x1 > x2 but y1 < y2 say.
+    polyhedron(points=[ // points
+        [-x1, -y1, 0], [x1, -y1, 0], [x1, y1, 0], [-x1, y1, 0],
+        [-x2, -y2, height], [x2, -y2, height], [x2, y2, height], [-x2, y2, height]
+    ], faces=[ // faces - clockwise facing in, right hand rule
+        [0, 1, 2, 3], // bottom
+        [0, 4, 5, 1], // -y face
+        [1, 5, 6, 2], // +x face
+        [2, 6, 7, 3], // +y face
+        [3, 7, 4, 0], // -x face
+        [4, 7, 6, 5]  // top
+    ], convexity=1);
+};
+
+
+module rectangular_torus(outer, inner, height, angle=360) {
+    // a torus from inner radius to outer radius - thickness is
+    // outer-inner - and height in z.
+    rotate_extrude(angle=angle) {
+        translate([inner, 0, 0]) square([outer-inner, height]);
+    }
+}
+
+module rectangular_pipe_bend(width, height, thickness, inner_radius, bend_angle) {
+    difference() {
+        rectangular_torus(
+          width+inner_radius+thickness*2, inner_radius, 
+          height+thickness*2, bend_angle
+        );
+        translate([0, 0, thickness]) rotate([0, 0, -0.01]) rectangular_torus(
+          width+inner_radius+thickness, inner_radius+thickness, 
+          height, bend_angle+0.02
+        );
+    }
+}
+
+module rectangular_pipe_bend_straight_ends(
+    width, height, thickness, inner_radius, bend_angle, join_length,
+    overlap_len, join_a=true, join_b=true, flange_a=true, flange_b=true
+){
+    // a rectangular pipe of inner measurements width * height, bent around
+    // inner_radius, with walls of thickness.  Pipe is on XY plane, starting
+    // from +xz plane.
+    translate([0, join_length, 0]) rectangular_pipe_bend(
+        width, height, thickness, inner_radius, bend_angle
+    );
+    if (join_a) {
+        fa_thick = flange_a ? thickness*2 : 0;
+        fa_outer = fa_thick + thickness*2;
+        translate([inner_radius-fa_thick, 0, -fa_thick]) difference() {
+            cube([width+fa_outer, join_length+overlap_len, height+fa_outer]);
+            translate([thickness, -0.01, thickness])
+              cube([width+fa_thick, join_length+overlap_len+0.02, height+fa_thick]);
+        }
+    };
+    if (join_b) {
+        fb_thick = flange_b ? thickness : 0;
+        fb_outer = fb_thick + thickness*2;
+        translate([0, join_length, 0]) rotate([0, 0, bend_angle]) 
+          translate([inner_radius-fb_thick, 0, -fb_thick]) difference() {
+            cube([width+fb_outer, join_length+overlap_len, height+fb_outer]);
+            translate([thickness, -0.01, thickness])
+              cube([width+fb_thick, join_length+overlap_len+0.02, height+fb_thick]);
+        }
+    }
+}
+
+module rectangular_pipe_bend_curved_ends(
+    width, height, thickness, inner_radius, bend_angle, join_angle,
+    overlap_angle, join_a=true, join_b=true, flange_a=true, flange_b=true
+) {
+    // a rectangular pipe of inner measurements width * height, bent around
+    // inner_radius for bend_anghe, with walls of thickness.  Pipe is on XY
+    // plane, starting from +xz plane.  If flange_a and/or flange_b is set,
+    // these parts (the 'a' and 'b' ends of the pipe) are flared (extending
+    // below XY plane). Total bend angle is bend_angle + 
+    // (join_angle-overlap_angle)*2 - set join and overlap angles to zero to
+    // have no extras.
+    // main bend
+    tor_outer_r = width+inner_radius+thickness;
+    rectangular_pipe_bend(
+        width, height, thickness, inner_radius, bend_angle
+    );
+    // flange a
+    if (join_a) {
+        fa_thick = flange_a ? thickness : 0;
+        fa_outer = fa_thick*2;
+        translate([0, 0, -fa_thick]) rotate([0, 0, overlap_angle-join_angle])
+          rectangular_pipe_bend(
+            width+fa_outer, height+fa_outer, thickness, inner_radius-fa_thick, join_angle
+          );
+    }
+    // flange b
+    if (join_b) {
+        fb_thick = flange_b ? thickness : 0;
+        fb_outer = fb_thick*2;
+        translate([0, 0, -fb_thick]) rotate([0, 0, bend_angle+overlap_angle-join_angle])
+          rectangular_pipe_bend(
+            width+fb_outer, height+fb_outer, thickness, inner_radius-fb_thick, join_angle
+          );
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// SPRINGS
+////////////////////////////////////////////////////////////////////////////////
+
 module spring(spring_r, wire_r, rise_per_rev, turns, step_deg) {
     // A spring of radius spring_r made of wire of radius wire_r, that goes
     // (fractional) turns around, modeled as sphere at each 'node', and a
@@ -272,6 +371,10 @@ module spring(spring_r, wire_r, rise_per_rev, turns, step_deg) {
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// BOLT SHAPES
+////////////////////////////////////////////////////////////////////////////////
+
 module countersunk_bolt_hole(shaft_d, shaft_len, head_d, head_len) {
     // The solid area taken up by a countersunk bolt, to be subtracted
     // from a body to make a screw hole.  The bolt is 'pointing down' and is
@@ -293,7 +396,8 @@ module flat_head_bolt_hole(shaft_d, shaft_len, head_d, head_len) {
 }
 
 module hexagon(radius, height) {
-    // A hexagon centred on the origin, with points on the X axis
+    // A hexagon centred on the origin, with points on the X-Y plane, extending
+    // up into the +Z.  Diameter is from point to point, not flat to flat.
     radius2 = radius*sin(30);
     radius3 = radius*sin(60);
     linear_extrude(height)

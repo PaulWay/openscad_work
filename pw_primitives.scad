@@ -81,15 +81,6 @@ module hollow_cone_oi(
 module cone_oi(height, bottom_o_radius, top_o_radius, bottom_i_radius, top_i_radius)
   hollow_cone_oi(height, bottom_o_radius, bottom_i_radius, top_o_radius, top_i_radius);
 
-module rectangular_tube(x, y, thickness, height) {
-    // thickness is added to x and y
-    difference() {
-        cube([x+thickness*2, y+thickness*2, height]);
-        translate([thickness, thickness, -0.01]) cube([x, y, height+0.02]);
-    }
-};
-
-
 module half_cylinder(height, radius) {
     // Half of a cylinder of the given height and radius in the positive X, so
     // starting from -Y radius to +Y radius.
@@ -124,6 +115,33 @@ module torus(outer, inner, angle=360)
     rotate_extrude(angle=angle) {
         translate([max(outer-inner, 0), 0, 0]) circle(r=inner);
     };
+
+
+module rectangular_tube(x, y, thickness, height) {
+    // thickness is added to x and y
+    difference() {
+        cube([x+thickness*2, y+thickness*2, height]);
+        translate([thickness, thickness, -epsilon]) cube([x, y, height+epsilo2]);
+    }
+};
+
+module rectangular_cone(x1, y1, x2, y2, height) {
+    // A symmetrical rectangular cone, from -x1,-y1 to x1,y1 on the XY plane
+    // and from -x2,-y2 to x2,y2 at height.  This is not really a 'cone'
+    // because the x and y can vary independently - i.e. the slope of the X faces
+    // can be different from the Y faces, if x1 > x2 but y1 < y2 say.
+    polyhedron(points=[ // points
+        [-x1, -y1, 0], [x1, -y1, 0], [x1, y1, 0], [-x1, y1, 0],
+        [-x2, -y2, height], [x2, -y2, height], [x2, y2, height], [-x2, y2, height]
+    ], faces=[ // faces - clockwise facing in, right hand rule
+        [0, 1, 2, 3], // bottom
+        [0, 4, 5, 1], // -y face
+        [1, 5, 6, 2], // +x face
+        [2, 6, 7, 3], // +y face
+        [3, 7, 4, 0], // -x face
+        [4, 7, 6, 5]  // top
+    ], convexity=1);
+};
 
 
 module rectangular_torus(outer, inner, height, angle=360) {
@@ -174,9 +192,9 @@ module rectangular_pipe_bend(
 }
 
 
-module conduit_angle_bend(
+module conduit_angle_bend_straight_join(
     bend_radius, pipe_radius, bend_angle, thickness, join_length, overlap_len,
-    flange_a=true, flange_b=true
+    join_a=true, join_b=true, flare_a=true, flare_b=true
 ) {
     // A piece of conduit with a pipe outer radius (not diameter) and wall
     // thickness, curving around a bend angle at a bend radius from the centre
@@ -192,14 +210,34 @@ module conduit_angle_bend(
         rotate([0, 0, -epsilon]) torus(bend_radius, pipe_radius-thickness, bend_angle+epsilo2);
     };
     // First flange
-    translate([bend_radius-pipe_radius+thickness, (flange_a ? overlap_len : 0), 0])
-    rotate([90, 0, 0])
-    ring_rt(join_length, pipe_radius+(flange_a ? thickness : 0), thickness);
+    if (join_a) {
+        join_a_rad_ext = (flare_a ? overlap_len : 0);
+        translate([bend_radius-pipe_radius+thickness, 0, 0])
+          rotate([90, 0, 0]) union() {
+            ring_rt(join_length, pipe_radius+join_a_rad_ext, thickness);
+            if (flare_a) {
+                translate([0, 0, -overlap_len]) hollow_cone_rt(
+                  thickness, pipe_radius, 
+                  pipe_radius+join_a_rad_ext, thickness
+                );
+            }
+        }
+    }
     // Second flange (taken around the angle)
-    rotate([0, 0, bend_angle])
-    translate([bend_radius-pipe_radius+thickness, join_length-(flange_b ? overlap_len : 0), 0])
-    rotate([90, 0, 0])
-    ring_rt(join_length, pipe_radius+(flange_b ? thickness : 0), thickness);
+    if (join_b) {
+        join_b_rad_ext = (flare_b ? overlap_len : 0);
+        rotate([0, 0, bend_angle])
+          translate([bend_radius-pipe_radius+thickness, join_length-join_b_rad_ext, 0])
+          rotate([90, 0, 0]) union() {
+            ring_rt(join_length, pipe_radius+join_b_rad_ext, thickness);
+            if (flare_b) {
+                translate([0, 0, join_length]) hollow_cone_rt(
+                  thickness, pipe_radius+join_b_rad_ext, 
+                  pipe_radius, thickness
+                );
+            }
+        }
+    }
 }
 
 module spring(spring_r, wire_r, rise_per_rev, turns, step_deg) {

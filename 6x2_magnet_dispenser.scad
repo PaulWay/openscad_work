@@ -96,7 +96,7 @@ translate([-50, 0, 0]) difference() {
       cylinder(d=magnet_dia+tolerance*2, h=magnet_thick);
     // the bottom text
     translate([switcher_wid/2, switcher_len-text_len+1, -eps]) 
-      linear_extrude(text_thick) text(
+      mirror([1, 0, 0]) linear_extrude(text_thick) text(
         "S", size=6, font="Liberation Sans:style=Regular", 
         halign="center", valign="center"
       );

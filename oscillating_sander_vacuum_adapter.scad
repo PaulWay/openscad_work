@@ -51,16 +51,16 @@ module aeg_hose_fitting_fitting() {
         }
     }
     // Hose fitting
-    cone_oi(halen/2, rho, rho+spike_thick, rhi, rhi);
+    hollow_cone_oi(halen/2, rho, rho+spike_thick, rhi, rhi);
     translate([0, 0, halen/2]) pipe_oi(halen/2, rho, rhi);
     // Middle
-    translate([0, 0, halen]) cone_oi(midlen, rho, r6, rhi, r2);
+    translate([0, 0, halen]) hollow_cone_oi(midlen, rho, r6, rhi, r2);
 }
 
 module shopvac_silicone_hose_fitting() {
-    translate([0, 0, 60]) cone_oi(30, 57, 56.5, 50, 54);
-    translate([0, 0, 30]) cone_oi(30, 53, 57, 44, 50);
-    translate([0, 0, 0]) cone_oi(30, 49, 53, 46, 44);
+    translate([0, 0, 60]) hollow_cone_oi(30, 57, 56.5, 50, 54);
+    translate([0, 0, 30]) hollow_cone_oi(30, 53, 57, 44, 50);
+    translate([0, 0, 0]) hollow_cone_oi(30, 49, 53, 46, 44);
 }
 
 shopvac_silicone_hose_fitting();

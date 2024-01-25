@@ -31,7 +31,7 @@ translate([200, 0, 0]) intersection() {
 translate([0, 200, 0]) union() {
     // Body, minus hole for inlet
     difference() {
-        ring_rt(30, 50, 4);
+        pipe_rt(30, 50, 4);
         translate([-35, -75, 28]) rotate([-105, 0, 0]) cylinder(h=75, r=15-4);
     }
     // Cap, minus hole for outlet
@@ -41,11 +41,11 @@ translate([0, 200, 0]) union() {
     }
     // Inlet, minus body:
     difference() {
-        translate([-35, -75, 28]) rotate([-105, 0, 0]) ring_rt(75, 15, 4);
+        translate([-35, -75, 28]) rotate([-105, 0, 0]) pipe_rt(75, 15, 4);
         translate([0, 0, -6]) cylinder(h=36, r=50);
     }
     // Outlet:
-    ring_rt(60, 15, 4);
+    pipe_rt(60, 15, 4);
 }
 
 module cyclone_lid(inlet_diam, wall_thick) {

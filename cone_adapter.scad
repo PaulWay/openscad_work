@@ -20,13 +20,13 @@ bottom_fl_outer = bottom_outer + step_thickness;
 bottom_fl_inner = bottom_inner;
 
 union() {
-    translate([0, 0, 0]) ring_oi(
+    translate([0, 0, 0]) pipe_oi(
         flange_height, bottom_outer, bottom_inner
     );
     translate([0, 0, flange_height-0.01]) hollow_cone_oi(
         cone_height, bottom_fl_outer, bottom_fl_inner, top_fl_outer, top_fl_inner
     );
-    translate([0, 0, flange_height+cone_height-0.01]) ring_oi(
+    translate([0, 0, flange_height+cone_height-0.01]) pipe_oi(
         flange_height+0.01, top_outer, top_inner
     );
 }

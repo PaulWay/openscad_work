@@ -46,15 +46,15 @@ cyl_diam = 500; cyl_rad = cyl_diam / 2;
 // Circular feed-in tube of OD 160mm going tangentially into the
 // side of a 500mm diameter cylinder.
 * translate([160/2, 0, 160/2]) difference() {
-    rotate([-90, 0, 0]) ring_rt(250, 160/2, 5/2);
+    rotate([-90, 0, 0]) pipe_rt(250, 160/2, 5/2);
     translate([500/2+2.5-160/2, 0, -160/2]) cylinder(h=160, d=500);
 }
 
 // a section of 150mm pipe with angled vanes inside it to spin the
 // airflow.
 * union() {
-    ring_rt(100, 155/2, 5/2);
-    translate([0, 0, 95]) ring_rt(20, 160/2, 5/2);
+    pipe_rt(100, 155/2, 5/2);
+    translate([0, 0, 95]) pipe_rt(20, 160/2, 5/2);
     translate([0, 0, 90]) hollow_cone_rt(5, 155/2, 160/2, 5/2);
     difference() {
         linear_extrude(100, twist=45) union() {
@@ -82,7 +82,7 @@ cyl_diam = 500; cyl_rad = cyl_diam / 2;
     };
     // the outlet tube, minus the rectangle intersecting it.
     difference() {
-        translate([0, 0, 155/2]) rotate([-90, 0, 0]) ring_rt(430, 155/2, 5/2);
+        translate([0, 0, 155/2]) rotate([-90, 0, 0]) pipe_rt(430, 155/2, 5/2);
         intersection() {
             rotate([0, 0, 45]) translate([0, 2.5, 152.5-80]) 
               cube([360, 240, 80]);

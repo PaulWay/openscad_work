@@ -44,22 +44,19 @@ module chamfered_cube(x, y, z, side, chamfer_x=true, chamfer_y=true, chamfer_z=t
     }
 }
 
-module ring_rt(height, radius, thickness) { difference() {
+module pipe_rt(height, radius, thickness) { difference() {
     // For when you know the outer radius and the wall thickness.
     cylinder(h=height, r=radius);
     translate([0, 0, -epsilon]) 
       cylinder(h=height+epsilo2, r=max(radius-thickness, 0));
 }};
-module pipe_rt(height, radius, thickness) ring_rt(height, radius, thickness);
-module hollow_cylinder(width, height, wall_t) ring_rt(height, width, wall_t);
 
-module ring_oi(height, o_radius, i_radius) { difference() {
+module pipe_oi(height, o_radius, i_radius) { difference() {
     // For when you know the outer and inner radius but not the wall thickness.
     cylinder(h=height, r=o_radius);
     translate([0, 0, -epsilon]) 
       cylinder(h=height+epsilo2, r=i_radius);   
 }};
-module pipe_oi(height, o_radius, i_radius) ring_oi(height, o_radius, i_radius);
 
 module hollow_cone_rt(height, bottom_radius, top_radius, thickness) { difference() {
     // For when you know the outer radii and the wall thickness.
@@ -78,8 +75,6 @@ module hollow_cone_oi(
     translate([0, 0, -epsilon]) 
       cylinder(h=height+epsilo2, r1=i_bot_radius, r2=i_top_radius);
 }};
-module cone_oi(height, bottom_o_radius, top_o_radius, bottom_i_radius, top_i_radius)
-  hollow_cone_oi(height, bottom_o_radius, bottom_i_radius, top_o_radius, top_i_radius);
 
 module half_cylinder(height, radius) {
     // Half of a cylinder of the given height and radius in the positive X, so

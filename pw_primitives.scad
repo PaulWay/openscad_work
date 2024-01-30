@@ -5,15 +5,6 @@ epsilo2 = epsilon*2;
 // SIMPLE CUBE MODULES
 ////////////////////////////////////////////////////////////////////////////////
 
-module hollow_cube(length, width, height, wall_t) {
-    difference() {
-        two_t = wall_t*2;
-        cube([length, width, height]);
-        translate([wall_t, wall_t, -epsilon]) 
-          cube([length-two_t, width-two_t, height+epsilo2]);
-    }
-}
-
 module rounded_box(length, width, height, outer_r) {
     // A simple solid box with rounded bottom and side edges.
     // Essentially this is a box with spherical corners and cylindrical
@@ -208,11 +199,22 @@ module conduit_angle_bend_straight_join(
 
 module rectangular_pipe(width, height, thickness, length) difference() {
     // a rectangular pipe of OUTER width (X) and height (Z), with walls of thickness,
-    // going in the Y direction.
+    // going length in the Y direction.
     cube([width, length, height]);
     translate([thickness, -epsilon, thickness]) cube([
       width-thickness*2, length+epsilo2, height-thickness*2
     ]);
+}
+
+module hollow_cube(length, width, height, wall_t) {
+    // a rectangular pipe of OUTER length (X) and width (Y), with walls of thickness,
+    // going height in the Z direction.
+    difference() {
+        two_t = wall_t*2;
+        cube([length, width, height]);
+        translate([wall_t, wall_t, -epsilon]) 
+          cube([length-two_t, width-two_t, height+epsilo2]);
+    }
 }
 
 module rectangular_tube(x, y, thickness, height) {

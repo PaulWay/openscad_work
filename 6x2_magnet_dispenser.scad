@@ -11,7 +11,7 @@ magnet_thick = 2;
 slider_len = 100;
 slider_wid = 10;
 slider_thick = 4;
-slider_hole_offset = 80;  
+slider_hole_offset = 85;
 switcher_x_offset = 2;  switcher_x_extra = 1; switcher_z_offset = 0.5;
 switcher_wid = magnet_dia + switcher_x_extra*2;
 switcher_thick = magnet_thick + switcher_z_offset;
@@ -108,4 +108,11 @@ translate([30, 0, 0]) difference() {
     // the magnet hole
     translate([slider_wid/2, slider_hole_offset+magnet_dia/2, magnet_thick]) 
       cylinder(h=magnet_thick+eps, d=magnet_dia+tolerance);
+    // the area for the base of the magnet placer to fit in, with a ridge to
+    // stop other magnets falling into that space.
+    translate([slider_wid/2, slider_hole_offset+magnet_dia/2, slider_thick-magnet_thick/2])
+      difference () {
+        translate([-slider_wid/2-epsilon, -5.5, 0]) cube([slider_wid+epsilo2, 11, slider_thick]);
+        translate([-1, -5.5, 0]) cube([2, 11, slider_thick]);
+    }
 }

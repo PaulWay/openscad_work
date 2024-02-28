@@ -39,6 +39,39 @@ module chamfered_cube(x, y, z, side, chamfer_x=true, chamfer_y=true, chamfer_z=t
     }
 }
 
+module hexahedron(corners, convexity) {
+    // A 'cube', but with eight arbitrary corners.  The corners must be
+    // listed in this order:
+    // - the bottom four corners, such that going around them in the order
+    //   0, 1, 2, 3 is a clockwise circle as seen from the outside facing
+    //   inward.
+    // - the top four corners, such that going around them in the order
+    //   *7, 6, 5, 4* is a *clockwise* circle as seen from the outside
+    //   facing inward.  In other words, the top four are in the opposite
+    //   order from the bottom four.
+    // This is the same as the example given in:
+    // https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Primitive_Solids#polyhedron
+    // i.e.
+    //
+    // 7--------6
+    // |  top   |
+    // 4--------5-------6------7------4
+    // | front  | right | back | left |
+    // 0--------1-------2------3------0
+    // | bottom |
+    // 3--------2
+    polyhedron(
+        points=corners, faces=[
+            [0,1,2,3],  // bottom
+            [4,5,1,0],  // front
+            [7,6,5,4],  // top
+            [5,6,2,1],  // right
+            [6,7,3,2],  // back
+            [7,4,0,3]   // left
+        ], convexity=convexity
+    );
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // RINGS AND CONES
 ////////////////////////////////////////////////////////////////////////////////
@@ -89,22 +122,17 @@ module half_cylinder(height, radius) {
 };
 
 module cylinder_segment(height, radius, angle=360) {
-    // A cylindrical arc segment of the given height and radius, starting
-    // from 0 degrees (along the -Y axis) and rotating anti-clockwise around
-    // the given angle.
-    if (angle < 180) {
-        // make up out of the intersection of two half cylinders
-        intersection() {
-            half_cylinder(height, radius);
-            rotate([0, 0, -(180-angle)]) half_cylinder(height, radius);
-        };
-    } else {
-        // make up of the union of two half cylinders
-        union() {
-            half_cylinder(height, radius);
-            rotate([0, 0, -(180-angle)]) half_cylinder(height, radius);
-        };
-    };
+    // Make an arc of a pipe by sweeping a rectangle through a rotate_extrude.
+    rotate_extrude(angle=angle, convexity=2) {
+        square([radius, height]);
+    }
+}
+
+module pipe_rt_segment(radius, thickness, height, angle) {
+    // Make an arc of a pipe by sweeping a rectangle through a rotate_extrude.
+    rotate_extrude(angle=angle, convexity=2) {
+        translate([radius, 0, 0]) square([thickness, height]);
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -336,7 +364,7 @@ module rectangular_pipe_bend_curved_ends(
 // SPRINGS
 ////////////////////////////////////////////////////////////////////////////////
 
-module spring(spring_r, wire_r, rise_per_rev, turns, step_deg) {
+module coil_spring(spring_r, wire_r, rise_per_rev, turns, step_deg) {
     // A spring of radius spring_r made of wire of radius wire_r, that goes
     // (fractional) turns around, modeled as sphere at each 'node', and a
     // cylinder between each node.  If rise_per_rev is negative, spiral goes
@@ -371,6 +399,47 @@ module spring(spring_r, wire_r, rise_per_rev, turns, step_deg) {
         }
         x = xn; y = yn; z = zn;
     }
+}
+
+module flat_spring(length, width, height, gap_length, segments) union() {
+    // Like a cube of [length, width, height], but with segments 'cut out'
+    // progressively full-width across the top and bottom, at half the height.
+    // The gap sits in the middle of the 'segment' length (length / segments).
+    seg_len = length / segments;
+    split_offset = (seg_len - gap_length) / 2;
+    h2 = height / 2;
+    difference() {
+        cube([length, width, height]);
+        for (i = [0:segments]) {
+            translate([i * seg_len + split_offset, -epsilon, h2 * (i % 2) - epsilon])
+              cube([gap_length, width+epsilo2, h2 + epsilo2]);
+        }
+    }
+}
+
+module rect_circ_spring(in_radius, out_radius, angle, segments, height, thickness) union () {
+    // A flexible 'spring' curve made purely out of rectangular pieces.
+    // There will always be a last segment wall - the angle is divided up into
+    // segments-1 pieces so there are always 'segments' number of radial pieces.
+    assert (segments > 1, "must have at least two segments");
+    rad_diff = out_radius - in_radius;
+    seg1 = (segments-1);
+    in_step = (in_radius * PI) / seg1;  // both half a circumference because of interleave
+    out_step = (out_radius * PI) / seg1;
+    for(seg = [0:seg1]) {
+        frac = seg/seg1;
+        rotate([0, 0, angle*frac]) translate([in_radius, 0, 0]) {
+            cube([rad_diff, thickness, height]);
+            if (seg % 2 == 0 && (seg < seg1)) {
+                rotate([0, 0, (angle/seg1)/2]) translate([0, thickness/2, 0])
+                  cube([thickness, in_step, height]);
+            }
+            if (seg % 2 == 1 && (seg < seg1)) {
+                rotate([0, 0, (angle/seg1)/2]) translate([rad_diff-thickness, 0, 0]) 
+                  cube([thickness, out_step, height]);
+            }
+        }
+    };
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -1,14 +1,12 @@
+include <pw_primitives.scad>;
+
 module board_cutout(x, y, z, chamfer_rad, hole_array=[], hole_dia=0, hole_len=0) {
     // a 'cutout' that will sit a small circuit board within a larger box.  The board
     // is x by y, and its corners are chamfered by chamfer_rad.  Note that this shape is
     // a 'negative' to remove from your larger block, which means that it goes into the
     // negative Z; the 'top' of the cutout is at zero because this is done relative to
     // the height of the thing you're cutting out of.
-    c2 = chamfer_rad*2;
-    translate([chamfer_rad, chamfer_rad, -z]) minkowski() {
-        cylinder(h=chamfer_rad, r=chamfer_rad);
-        cube([x-c2, y-c2, z-chamfer_rad]);
-    }
+    translate([0, 0, -z]) rounded_cube(x, y, z, chamfer_rad);
     for(point = hole_array) {
         translate([point.x, point.y, -z-hole_len+epsilon]) cylinder(h=hole_len, d=hole_dia);
     }

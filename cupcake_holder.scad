@@ -29,14 +29,14 @@ module cupcake_holder(height, top_dia, bot_dia, top_off, thick, option=1) {
         } else if (option == 2 || option == 3) {
             intersection() {
                 hollow_cone_rt(cone_height, bot_o_dia/2, cone_top_r, thick);
-                rotate([0, 0, 30]) hexagon(hexa_rad, hexa_height-25);
+                rotate([0, 0, 30]) hexagon_solid(hexa_rad, hexa_height-25);
             }
         }
     }
     if (option == 1) {
         // surround, in hexagon
         translate([centre, centre, height-thick]) difference() {
-            rotate([0, 0, 30]) hexagon(hexa_rad, thick);
+            rotate([0, 0, 30]) hexagon_solid(hexa_rad, thick);
             translate([0, 0, -epsilon]) cylinder(h=thick+epsilo2, d=top_dia);
         }
     }
@@ -56,18 +56,6 @@ module cupcake_holder(height, top_dia, bot_dia, top_off, thick, option=1) {
         translate([centre+hexa_rad, centre-hexa_sin, 0]) rotate([0, 0, 180])
           cylinder_segment(height, 5, 120); 
     }
-}
-
-module hex_arrange(num_x, num_y, diameter) {
-    alt_row_shift = diameter/2;
-    row_offset = diameter * sin(60);
-    for (x = [0:num_x-1]) {
-        for (y = [0:num_y-1]) {
-            x_off = x * diameter + (y % 2) * alt_row_shift;
-            y_off = y * row_offset;
-            translate([x_off, y_off, 0]) children();
-        };
-    };
 }
 
 hex_arrange(2, 2, 90)

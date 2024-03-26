@@ -2,6 +2,22 @@ epsilon = 0.01;
 epsilo2 = epsilon*2;
 
 ////////////////////////////////////////////////////////////////////////////////
+// ARRANGERS
+////////////////////////////////////////////////////////////////////////////////
+
+module hex_arrange(num_x, num_y, diameter) {
+    alt_row_shift = diameter/2;
+    row_offset = diameter * sin(60);
+    for (x = [0:num_x-1]) {
+        for (y = [0:num_y-1]) {
+            x_off = x * diameter + (y % 2) * alt_row_shift;
+            y_off = y * row_offset;
+            translate([x_off, y_off, 0]) children();
+        };
+    };
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // SIMPLE CUBE MODULES
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -37,6 +53,16 @@ module chamfered_cube(x, y, z, side, chamfer_x=true, chamfer_y=true, chamfer_z=t
         translate([xoff, 0, zoff]) cube([x-xsub, y, z-zsub]);
         translate([0, yoff, zoff]) cube([x, y-ysub, z-zsub]);
     }
+}
+
+module rounded_cube(x, y, z, chamfer_rad) {
+    // A simple cube with rounded vertical sides but a flat base
+    // apparently if {} blocks keep the context of 
+    chamfer_rad = (chamfer_rad >= x/2) || (chamfer_rad >= y/2)
+      ? min(x, y)/2 - epsilon : chamfer_rad;
+    c2 = chamfer_rad*2;
+    linear_extrude(z, center=false) translate([chamfer_rad, chamfer_rad, 0]) 
+      offset(r=chamfer_rad) square([x-c2, y-c2], center=false);
 }
 
 module hexahedron(corners, convexity) {
@@ -466,7 +492,18 @@ module flat_head_bolt_hole(shaft_d, shaft_len, head_d, head_len) {
     }
 }
 
-module hexagon(radius, height) {
+module hexagon(radius) {
+    // A hexagon centred on the origin, with points on the X-Y plane, extending
+    // up into the +Z.  Diameter is from point to point, not flat to flat.
+    radius2 = radius*sin(30);
+    radius3 = radius*sin(60);
+    polygon([  // going anticlockwise
+        [radius, 0], [radius2, radius3], [-radius2, radius3], 
+        [-radius, 0], [-radius2, -radius3], [radius2, -radius3],
+    ]);
+}
+
+module hexagon_solid(radius, height) {
     // A hexagon centred on the origin, with points on the X-Y plane, extending
     // up into the +Z.  Diameter is from point to point, not flat to flat.
     radius2 = radius*sin(30);

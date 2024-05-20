@@ -6,7 +6,7 @@ $fn=32;
 case_height = 14;  case_rad = 2;
 case_surround_thick = 3;
 
-badger_len = 87.5;  badger_wid = 49;
+badger_len = 86.25;  badger_wid = 49;
 badger_top_height = 8.8; badger_support_height = 7.55-1.6;
 badger_top_thick = badger_top_height - badger_support_height;
 badger_hole_dia = 2.5;  badger_board_chamfer_r = 3;
@@ -34,6 +34,8 @@ usb_c_open_z = case_height + charger_hei_off - charger_height + charger_usb_z;
 // the piicodev atmospheric sensor
 sensor_len = 25.3;  sensor_wid = 26.15;  sensor_height = 4.8;
 
+// the battery itself
+battery_len = 52;  battery_wid = 33.7;  battery_height = 6.0;
 
 // calculated dimensions
 case_len = badger_len + case_surround_thick * 2;

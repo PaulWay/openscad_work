@@ -100,7 +100,7 @@ translate([0, 20, handle_wid/2]) rotate([-90, 0, 0]) union() {
     // the finger - outer, inner, angle
     $fn = 90;
     translate([handle_len+20, 0, 0]) rotate([90, 0, 180]) 
-      torus(handle_len+pusher_dia/3+20, pusher_dia/2-0.2, main_angle-5);
+      torus(handle_len+pusher_dia/3+20, pusher_dia/2-0.2, angle=main_angle-5);
 }
 
 // the tube and support

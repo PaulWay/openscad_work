@@ -12,7 +12,8 @@ b_joint_female = true;
 
 $fn=90;
 
-translate([-(50+thickness), 0, (join_length-overlap_len)]) rotate([90, 0, 0]) conduit_angle_bend(
+translate([-(50+thickness), 0, (join_length-overlap_len)]) rotate([90, 0, 0])
+conduit_angle_bend_straight_join(
     bend_radius, pipe_radius, bend_angle, thickness, join_length,
     overlap_len, a_joint_female, b_joint_female
 );

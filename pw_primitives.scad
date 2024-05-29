@@ -5,7 +5,13 @@ epsilo2 = epsilon*2;
 // ARRANGERS
 ////////////////////////////////////////////////////////////////////////////////
 
-module hex_arrange(num_x, num_y, diameter) {
+module hex_distribute(num_x, num_y, diameter) {
+    // Spreads a child across a hexagonal grid num_x across and num_y along, with
+    // each hexagon having a widest diameter (point to point) of diameter.
+    // IOW, each X object will be diameter apart and the space between X objects
+    // in adjacent rows will be diameter apart, at a 60 degree diagonal.  Y rows
+    // will be less than diameter apart, but even numbered Y columns will line
+    // up on the same X value, as will odd numbered Y columns.
     alt_row_shift = diameter/2;
     row_offset = diameter * sin(60);
     for (x = [0:num_x-1]) {
@@ -15,6 +21,27 @@ module hex_arrange(num_x, num_y, diameter) {
             translate([x_off, y_off, 0]) children();
         };
     };
+}
+
+
+module rotate_distribute(number, angle=360, last_fencepost=false) {
+    // Spreads a number of child objects across an angle.  If 'last_fencepost' is set,
+    // then there will be a last item placed at that ending spot; if it is set to false,
+    // there is no 'last' fencepost at the ending angle.  rotate_distribute is
+    // mostly used when distributing n items evenly around a circle; when the angle
+    // is less than 360 degrees you probably want to turn last_fencepost on.
+    for(i = [0 : number-1]) {
+        rotate([0, 0, i * angle / (number - (last_fencepost ? 1 : 0))]) children();
+    }
+}
+
+
+module linear_distribute(start, step, end, tvec = [1, 0, 0]) {
+    // Distribute children in a for loop, but multiplying the translation
+    // vector `tvec` by the loop value.
+    for(i = [start : step : end]) {
+        translate(tvec*i) children();
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -36,7 +63,7 @@ module rounded_box(length, width, height, outer_r) {
             sphere(r=outer_r);
         };
         // top face
-        translate([-outer_r, -outer_r, height-outer_r+epsilon]) 
+        translate([-outer_r, -outer_r, height-outer_r+epsilon])
           cube([length+2*outer_r, width+2*outer_r, outer_r]);
     }
 }
@@ -47,7 +74,7 @@ module chamfered_cube(x, y, z, side, chamfer_x=true, chamfer_y=true, chamfer_z=t
     xoff = chamfer_x ? side : 0; xsub = chamfer_x ? s2 : 0;
     yoff = chamfer_y ? side : 0; ysub = chamfer_y ? s2 : 0;
     zoff = chamfer_z ? side : 0; zsub = chamfer_z ? s2 : 0;
-    
+
     hull() {
         translate([xoff, yoff, 0]) cube([x-xsub, y-ysub, z]);
         translate([xoff, 0, zoff]) cube([x-xsub, y, z-zsub]);
@@ -57,15 +84,16 @@ module chamfered_cube(x, y, z, side, chamfer_x=true, chamfer_y=true, chamfer_z=t
 
 module rounded_cube(x, y, z, chamfer_rad) {
     // A simple cube with rounded vertical sides but a flat base
-    // apparently if {} blocks keep the context of 
+    // apparently 'if {}' blocks keep the context of variables, so we can't
+    // use that to change the chamfer_rad.
     chamfer_rad = (chamfer_rad >= x/2) || (chamfer_rad >= y/2)
       ? min(x, y)/2 - epsilon : chamfer_rad;
     c2 = chamfer_rad*2;
-    linear_extrude(z, center=false) translate([chamfer_rad, chamfer_rad, 0]) 
+    linear_extrude(z, center=false) translate([chamfer_rad, chamfer_rad, 0])
       offset(r=chamfer_rad) square([x-c2, y-c2], center=false);
 }
 
-module hexahedron(corners, convexity) {
+module hexahedron(corners, convexity=1) {
     // A 'cube', but with eight arbitrary corners.  The corners must be
     // listed in this order:
     // - the bottom four corners, such that going around them in the order
@@ -102,25 +130,66 @@ module hexahedron(corners, convexity) {
 // RINGS AND CONES
 ////////////////////////////////////////////////////////////////////////////////
 
+/* From the examples at
+ * https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/undersized_circular_objects
+ * via https://github.com/superjamie/handyscad/blob/master/handyscad.scad
+ * For when you need a cylinder or circle that entirely encompasses a circle of a
+ * given radius, because of the way circular objects are approximated by straight
+ * line segments in OpenSCAD.
+ *
+ */
+module cylinder_outer(h, d=undef, r=undef) {
+    // entirely encompasses a given cylinder
+    assert (!(r == undef) || (d == undef));
+    radius = (r == undef) ? d/2 : r;
+    fudge = 1/cos(180/$fn);
+    cylinder(h=h, r=radius*fudge);
+}
+
+module cylinder_mid(h, d=undef, r=undef) {
+    // the mid-point between cylinder and cylinder_outer
+    assert (!(r == undef) || (d == undef));
+    radius = (r == undef) ? d/2 : r;
+    fudge = (1+1/cos(180/$fn))/2;
+    cylinder(h=h, r=radius*fudge);
+}
+
+
+module circle_outer(d=undef, r=undef) {
+    // entirely encompasses a given circle
+    assert (!(r == undef) || (d == undef));
+    radius = (r == undef) ? d/2 : r;
+    fudge = 1/cos(180/$fn);
+    circle(r=radius*fudge);
+}
+
+module circle_mid(d=undef, r=undef) {
+    // the mid-point between circle and circle_outer
+    assert (!(r == undef) || (d == undef));
+    radius = (r == undef) ? d/2 : r;
+    fudge = (1+1/cos(180/$fn))/2;
+    circle(r=radius*fudge);
+}
+
 module pipe_rt(height, radius, thickness) { difference() {
     // For when you know the outer radius and the wall thickness.
     cylinder(h=height, r=radius);
-    translate([0, 0, -epsilon]) 
-      cylinder(h=height+epsilo2, r=max(radius-thickness, 0));
+    translate([0, 0, -epsilon])
+      cylinder_outer(h=height+epsilo2, r=max(radius-thickness, 0));
 }};
 
 module pipe_oi(height, o_radius, i_radius) { difference() {
     // For when you know the outer and inner radius but not the wall thickness.
     cylinder(h=height, r=o_radius);
-    translate([0, 0, -epsilon]) 
-      cylinder(h=height+epsilo2, r=i_radius);   
+    translate([0, 0, -epsilon])
+      cylinder_outer(h=height+epsilo2, r=i_radius);
 }};
 
 module hollow_cone_rt(height, bottom_radius, top_radius, thickness) { difference() {
     // For when you know the outer radii and the wall thickness.
     cylinder(h=height, r1=bottom_radius, r2=top_radius);
     translate([0, 0, -epsilon]) cylinder(
-        h=height+epsilo2, 
+        h=height+epsilo2,
         r1=max(bottom_radius-thickness, 0), r2=max(top_radius-thickness, 0)
     );
 }};
@@ -130,7 +199,7 @@ module hollow_cone_oi(
 ) { difference() {
     // For when you know the outer and inner radii but not the wall thickness.
     cylinder(h=height, r1=o_bot_radius, r2=o_top_radius);
-    translate([0, 0, -epsilon]) 
+    translate([0, 0, -epsilon])
       cylinder(h=height+epsilo2, r1=i_bot_radius, r2=i_top_radius);
 }};
 
@@ -165,13 +234,13 @@ module pipe_rt_segment(radius, thickness, height, angle) {
 // TOROIDS AND PIPE BENDS
 ////////////////////////////////////////////////////////////////////////////////
 
-module torus(outer, inner, angle=360)
-    // a torus whose ring is a circle of outer-inner radius, 
+module torus(outer, inner, x_stretch=1, angle=360) {
+    // a torus whose ring is a circle of outer-inner radius,
     // centred on a circle of outer radius.
-    rotate_extrude(angle=angle) {
-        translate([max(outer-inner, 0), 0, 0]) circle(r=inner);
-    };
+    rotate_extrude(angle=angle, convexity=2)
+        translate([max(outer-inner, 0), 0, 0]) scale([x_stretch, 1, 1]) circle(r=inner);
 
+}
 
 module quarter_torus_bend_snub_end(outer_rad, width, angle, outer=true) {
     // A torus's upper quarter - inner or outer depending on the 'outer' setting
@@ -179,12 +248,12 @@ module quarter_torus_bend_snub_end(outer_rad, width, angle, outer=true) {
     // angle in the quadrant, that is a given width high and wide, stretching an
     // angle around the circle.
     // In other words, a quarter-circle shaped piece wrapped around the outside
-    // or inside (again if cut_outer is false, or true, respectively).  The
+    // or inside (again if outer is false or true, respectively).  The
     // 'front' and 'back' of the piece end in spheres to make it a bit
     // 'aerodynamic'.
     intersection() {
         union() {
-            torus(outer_rad+width, width, angle);
+            torus(outer_rad+width, width, angle=angle);
             rotate([0, 0, 0]) translate([outer_rad, 0, 0]) sphere(r=width);
             rotate([0, 0, angle]) translate([outer_rad, 0, 0]) sphere(r=width);
         }
@@ -213,18 +282,18 @@ module conduit_angle_bend_straight_join(
 
     // The actual bend
     difference() {
-        torus(bend_radius+thickness, pipe_radius, bend_angle);
-        rotate([0, 0, -epsilon]) torus(bend_radius, pipe_radius-thickness, bend_angle+epsilo2);
+        torus(bend_radius+thickness, pipe_radius, angle=bend_angle);
+        rotate([0, 0, -epsilon]) torus(bend_radius, pipe_radius-thickness, angle=bend_angle+epsilo2);
     };
     // First flange
     if (join_a) {
         join_a_rad_ext = (flare_a ? overlap_len : 0);
         translate([bend_radius-pipe_radius+thickness, 0, 0])
           rotate([90, 0, 0]) union() {
-            ring_rt(join_length, pipe_radius+join_a_rad_ext, thickness);
+            pipe_rt(join_length, pipe_radius+join_a_rad_ext, thickness);
             if (flare_a) {
                 translate([0, 0, -overlap_len]) hollow_cone_rt(
-                  thickness, pipe_radius, 
+                  thickness, pipe_radius,
                   pipe_radius+join_a_rad_ext, thickness
                 );
             }
@@ -236,10 +305,10 @@ module conduit_angle_bend_straight_join(
         rotate([0, 0, bend_angle])
           translate([bend_radius-pipe_radius+thickness, join_length-join_b_rad_ext, 0])
           rotate([90, 0, 0]) union() {
-            ring_rt(join_length, pipe_radius+join_b_rad_ext, thickness);
+            pipe_rt(join_length, pipe_radius+join_b_rad_ext, thickness);
             if (flare_b) {
                 translate([0, 0, join_length]) hollow_cone_rt(
-                  thickness, pipe_radius+join_b_rad_ext, 
+                  thickness, pipe_radius+join_b_rad_ext,
                   pipe_radius, thickness
                 );
             }
@@ -266,7 +335,7 @@ module hollow_cube(length, width, height, wall_t) {
     difference() {
         two_t = wall_t*2;
         cube([length, width, height]);
-        translate([wall_t, wall_t, -epsilon]) 
+        translate([wall_t, wall_t, -epsilon])
           cube([length-two_t, width-two_t, height+epsilo2]);
     }
 }
@@ -309,11 +378,11 @@ module rectangular_torus(outer, inner, height, angle=360) {
 module rectangular_pipe_bend(width, height, thickness, inner_radius, bend_angle) {
     difference() {
         rectangular_torus(
-          width+inner_radius+thickness*2, inner_radius, 
+          width+inner_radius+thickness*2, inner_radius,
           height+thickness*2, bend_angle
         );
         translate([0, 0, thickness]) rotate([0, 0, -0.01]) rectangular_torus(
-          width+inner_radius+thickness, inner_radius+thickness, 
+          width+inner_radius+thickness, inner_radius+thickness,
           height, bend_angle+0.02
         );
     }
@@ -341,7 +410,7 @@ module rectangular_pipe_bend_straight_ends(
     if (join_b) {
         fb_thick = flange_b ? thickness : 0;
         fb_outer = fb_thick + thickness*2;
-        translate([0, join_length, 0]) rotate([0, 0, bend_angle]) 
+        translate([0, join_length, 0]) rotate([0, 0, bend_angle])
           translate([inner_radius-fb_thick, 0, -fb_thick]) difference() {
             cube([width+fb_outer, join_length+overlap_len, height+fb_outer]);
             translate([thickness, -0.01, thickness])
@@ -358,7 +427,7 @@ module rectangular_pipe_bend_curved_ends(
     // inner_radius for bend_anghe, with walls of thickness.  Pipe is on XY
     // plane, starting from +xz plane.  If flange_a and/or flange_b is set,
     // these parts (the 'a' and 'b' ends of the pipe) are flared (extending
-    // below XY plane). Total bend angle is bend_angle + 
+    // below XY plane). Total bend angle is bend_angle +
     // (join_angle-overlap_angle)*2 - set join and overlap angles to zero to
     // have no extras.
     // main bend
@@ -461,7 +530,7 @@ module rect_circ_spring(in_radius, out_radius, angle, segments, height, thicknes
                   cube([thickness, in_step, height]);
             }
             if (seg % 2 == 1 && (seg < seg1)) {
-                rotate([0, 0, (angle/seg1)/2]) translate([rad_diff-thickness, 0, 0]) 
+                rotate([0, 0, (angle/seg1)/2]) translate([rad_diff-thickness, 0, 0])
                   cube([thickness, out_step, height]);
             }
         }
@@ -498,7 +567,7 @@ module hexagon(radius) {
     radius2 = radius*sin(30);
     radius3 = radius*sin(60);
     polygon([  // going anticlockwise
-        [radius, 0], [radius2, radius3], [-radius2, radius3], 
+        [radius, 0], [radius2, radius3], [-radius2, radius3],
         [-radius, 0], [-radius2, -radius3], [radius2, -radius3],
     ]);
 }
@@ -510,7 +579,7 @@ module hexagon_solid(radius, height) {
     radius3 = radius*sin(60);
     linear_extrude(height)
     polygon([  // going anticlockwise
-        [radius, 0], [radius2, radius3], [-radius2, radius3], 
+        [radius, 0], [radius2, radius3], [-radius2, radius3],
         [-radius, 0], [-radius2, -radius3], [radius2, -radius3],
     ]);
 }

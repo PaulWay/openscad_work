@@ -1,4 +1,4 @@
-include <pw_primitives.scad>;
+include <../libs/pw_pw_primitives.scad>;
 
 module board_cutout(x, y, z, chamfer_rad, hole_array=[], hole_dia=0, hole_len=0) {
     // a 'cutout' that will sit a small circuit board within a larger box.  The board

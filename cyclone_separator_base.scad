@@ -62,11 +62,16 @@ module cyclone_lid(inlet_diam, wall_thick) {
             // outlet
             cylinder(h=inlet_diam+wall_thick*2, d=inlet_diam+wall_thick*2);
             // base
-            cylinder(h=inlet_r+wall_thick, r=torus_outer_r);
+            // cylinder(h=inlet_r+wall_thick, r=torus_outer_r);
             // top
             translate([0, 0, inlet_r+wall_thick]) intersection() {
-                torus(torus_outer_r, inlet_r+wall_thick);
-                cylinder(h=inlet_r+wall_thick, r=torus_outer_r);
+            //    torus(torus_outer_r, inlet_r+wall_thick);
+                mirror([1, 0, 0]) coil_spring(
+                    inlet_diam+wall_thick, inlet_r+wall_thick, -inlet_diam, 1, 20
+                )
+                # cylinder(h=inlet_r+wall_thick, r=torus_outer_r);
+                translate([0, 0, -inlet_r+wall_thick])
+                  cylinder(h=inlet_diam+wall_thick, r=torus_outer_r);
             };
             // inlet
             translate([-(inlet_diam+wall_thick), 0, inlet_r]) rotate([z_angle, 0, 0])
@@ -74,7 +79,7 @@ module cyclone_lid(inlet_diam, wall_thick) {
         }
         // Spiral inside the cap for the airflow - mirrored and negative
         // spiral to put the inlet at the right place.
-        translate([0, 0, inlet_r]) mirror([1,0,0]) spring(
+        translate([0, 0, inlet_r]) mirror([1,0,0]) coil_spring(
             inlet_diam+wall_thick, inlet_r, -inlet_diam, 1, 20
         );
         // inlet - cylinder starts off 'standing on' Z axis, is rotated around

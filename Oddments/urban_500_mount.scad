@@ -1,7 +1,7 @@
 $fa = 5;
 $fs = 1;
 
-include <pw_primitives.scad>;
+include <../libs/pw_primitives.scad>;
 
 width = 20;
 hb_radius = 20; hb_thick=3;

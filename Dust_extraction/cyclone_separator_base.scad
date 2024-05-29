@@ -1,4 +1,4 @@
-include <pw_primitives.scad>;
+include <../libs/pw_primitives.scad>;
 
 rb = 20;
 r1 = 10;  h1 = 0;

@@ -1,4 +1,4 @@
-include <pw_primitives.scad>;
+include <../libs/pw_primitives.scad>;
 
 function arith_spiral(start_rad, end_rad, steps, angle=360) = [
     for (i=[0:steps-1])  let (fract = i/(steps-1))

@@ -1,4 +1,4 @@
-include <pw_primitives.scad>;
+include <../libs/pw_primitives.scad>;
 
 module bendy_y(diameter, height, separation) union() {
     // A Y in a tube of inner diameter and thickness, with a total height

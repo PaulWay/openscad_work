@@ -1,4 +1,4 @@
-include <pw_primitives.scad>;
+include <../libs/pw_primitives.scad>;
 
 rect_circ_spring(10, 15, 180, 20, 10, 1.5);
 translate([10, -100, 0]) cube([5, 100, 10]);

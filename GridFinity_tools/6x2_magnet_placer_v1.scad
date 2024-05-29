@@ -1,4 +1,4 @@
-include <pw_primitives.scad>;
+include <../libs/pw_primitives.scad>;
 
 $fs = 0.6;
 $fa = 1;

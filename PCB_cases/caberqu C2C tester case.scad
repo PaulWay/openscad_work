@@ -1,4 +1,4 @@
-include <pw_primitives.scad>;
+include <../libs/pw_primitives.scad>;
 include <pwlib_boards.scad>;
 
 board_len = 87.25;  board_wid = 45.25; board_hei = 2;

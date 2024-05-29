@@ -1,4 +1,4 @@
-include <pw_primitives.scad>;
+include <../libs/pw_primitives.scad>;
 
 module twist_vase(base_height, vase_height, corner_rad, twist) union() {
     translate([0, 0, base_height]) 

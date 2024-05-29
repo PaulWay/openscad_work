@@ -1,4 +1,4 @@
-include <pw_primitives.scad>;
+include <../libs/pw_primitives.scad>;
 
 // AEG sander fitting diameters
 d1=34.25; r1=d1/2;

@@ -1,4 +1,4 @@
-// include <pw_primitives.scad>;
+// include <../libs/pw_primitives.scad>;
 
 length = 30; // total length in Y
 width = 38; // total width in X

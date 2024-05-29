@@ -1,4 +1,4 @@
-include <pw_primitives.scad>;
+include <../libs/pw_primitives.scad>;
 
 // lid is upside-down so we can print the 'top' first rather than use support.
 

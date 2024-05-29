@@ -24,19 +24,19 @@ module bendy_y(diameter, height, separation) union() {
     outer_rad = (tri_dist/4) / sin(tri_angle); outer_hyp = (tri_dist/4) / tan(tri_angle);
     // right bend
     translate([outer_rad, 0, 0]) rotate([0, 0, 180-tri_angle*2])
-      torus(outer_rad+diameter/2, diameter/2, tri_angle*2);
+      torus(outer_rad+diameter/2, diameter/2, angle=tri_angle*2);
     // we need a thin cylinder in the middle so that each bend is entirely contiguous
     translate([centre_sep/2, height/2, 0]) rotate([-90, 0, -tri_angle*2])
       translate([0, 0, -0.01]) cylinder(d=diameter, h=0.1);
     translate([centre_sep-outer_rad, height, 0]) rotate([0, 0, -tri_angle*2])
-      torus(outer_rad+diameter/2, diameter/2, tri_angle*2);
+      torus(outer_rad+diameter/2, diameter/2, angle=tri_angle*2);
     // left bend
     translate([-outer_rad, 0, 0])
-      torus(outer_rad+diameter/2, diameter/2, tri_angle*2);
+      torus(outer_rad+diameter/2, diameter/2, angle=tri_angle*2);
     translate([-centre_sep/2, height/2, 0]) rotate([-90, 0, tri_angle*2])
       translate([0, 0, -0.01]) cylinder(d=diameter, h=0.1);
     translate([-(centre_sep-outer_rad), height, 0]) rotate([0, 0, 180])
-      torus(outer_rad+diameter/2, diameter/2, tri_angle*2);
+      torus(outer_rad+diameter/2, diameter/2, angle=tri_angle*2);
 }
 
 module tube_y(diameter, thickness, height, separation) difference() {
@@ -71,14 +71,14 @@ module straight_y(single_dia, duple_dia, thickness, height, separation) union() 
         translate([-outer_rad, -single_dia/2, 0]) cube([outer_rad, single_dia, height]);
     };
     translate([fudge, 0, height])
-      rotate([90, 180, 0]) torus(outer_rad, duple_dia/2, tri_angle);
+      rotate([90, 180, 0]) torus(outer_rad, duple_dia/2, angle=tri_angle);
     intersection() {
         rotate([0, +tri_angle, 0]) cylinder(h=tri_dist+0.1, d1=single_dia, d2=duple_dia);
         translate([0, -single_dia/2, 0]) cube([outer_rad, single_dia, height]);
     };
     echo("top_offset:", top_offset);
     translate([-fudge, 0, height])
-      rotate([90, tri_angle, 0]) torus(outer_rad, duple_dia/2, tri_angle);
+      rotate([90, tri_angle, 0]) torus(outer_rad, duple_dia/2, angle=tri_angle);
 }
 
 * difference() {

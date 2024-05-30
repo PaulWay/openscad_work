@@ -1,6 +1,22 @@
 Woodworking and workshop tools
 ------------------------------
 
+**File: `lathe_drum_sander_v1.scad`**
+
+Print two of these and they exactly fit the VicMarc 128mm jaws; then a 533mm
+long, 75cm high sanding belt for a standard belt sander will fit exactly
+around the outside.  This then forms a simple drum sander for the lathe.  By
+slightly expanding the jaws it holds the belt in place and the drum on the
+jaws.  The overlap is in a V profile so there's no obvious join indent, and
+the pieces between the outer and inner are angled so as to minimise infill,
+obviate support material, and provide a mild air pressure to draw dust away
+from the user.
+
+The easiest way to assemble it is to put both pieces inside the loop
+of the sanding belt first, then move them around until the ends meet and
+interlock.  Then put the chuck in.  The part has been designed to allow
+customisation for other belt and chuck sizes.
+
 **File: `masonry_drill_rack_v1.0.scad`**
 
 A basic block to store the masonry drills I have.

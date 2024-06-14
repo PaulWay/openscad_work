@@ -12,10 +12,11 @@ the pieces between the outer and inner are angled so as to minimise infill,
 obviate support material, and provide a mild air pressure to draw dust away
 from the user.
 
-The easiest way to assemble it is to put both pieces inside the loop
-of the sanding belt first, then move them around until the ends meet and
-interlock.  Then put the chuck in.  The part has been designed to allow
-customisation for other belt and chuck sizes.
+The easiest way to assemble it is to put both pieces inside the loop of the
+sanding belt first, then move them around until the ends meet and interlock.
+Then pick it up and put the chuck in from the other side - the 'vanes' of the
+fan are angled in on the 'outside' away from the chuck.  The part has been
+designed to allow customisation for other belt and chuck sizes.
 
 **File: `masonry_drill_rack_v1.0.scad`**
 

@@ -5,6 +5,11 @@ epsilo2 = epsilon*2;
 // ARRANGERS
 ////////////////////////////////////////////////////////////////////////////////
 
+// abbreviated translate
+module txl(x=0, y=0, z=0) { translate([x, y, z]) children();}
+// abbreviated rotate
+module rot(x=0, y=0, z=0) { rotate([x, y, z]) children();}
+
 module hex_distribute(num_x, num_y, diameter) {
     // Spreads a child across a hexagonal grid num_x across and num_y along, with
     // each hexagon having a widest diameter (point to point) of diameter.
@@ -171,6 +176,21 @@ module circle_mid(d=undef, r=undef) {
     circle(r=radius*fudge);
 }
 
+module ellipse(x, y) {
+    scale([1, y/x, 1]) circle(d=x);
+}
+
+module ellipsoid(x, y, height) {
+    scale([1, y/x, 1]) cylinder(h=height, d=x);
+}
+
+module elliptical_pipe(x, y, height, thick)
+linear_extrude(height) difference() {
+    scale([1, (y+thick)/(x+thick), 1]) circle(d=x+thick);
+    scale([1, y/x, 1]) circle(d=x);
+
+}
+
 module pipe_rt(height, radius, thickness) { difference() {
     // For when you know the outer radius and the wall thickness.
     cylinder(h=height, r=radius);
@@ -241,6 +261,7 @@ module torus(outer, inner, x_stretch=1, angle=360) {
         translate([max(outer-inner, 0), 0, 0]) scale([x_stretch, 1, 1]) circle(r=inner);
 
 }
+
 
 module quarter_torus_bend_snub_end(outer_rad, width, angle, outer=true) {
     // A torus's upper quarter - inner or outer depending on the 'outer' setting

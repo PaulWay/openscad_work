@@ -47,12 +47,6 @@ Using the example of the `offset` 2D function and twist in `linear_extrude`
 to make some interesting simple vases.  Best with rainbow, bi-colour or
 tri-colour filament.
 
-**File: `thundersky_battery_handle_v1.scad`**
-
-A handle to fit on ThunderSky / Winston Energy 60AH LiFePO4 cells, so that
-the pack can be lifted as a whole.  Currently contains the `pinch` function
-for operating on lists of 2D points.
-
 **File: `tickety_boo_sign.scad`**
 
 For indicating to other people whether everything is tickety-boo or not.

@@ -12,4 +12,7 @@ slightly more secure.
 
 A handle to fit on ThunderSky / Winston Energy 60AH LiFePO4 cells, so that
 the pack can be lifted as a whole.  Currently contains the `pinch` function
-for operating on lists of 2D points.
+for operating on lists of 2D points.  This design relies on inward pressure
+to hold the handle to the sides of the battery - this may be via the 'pinch'
+tapering the battery holding points inward, but should be added to with glue
+or an external band around the battery and handle sides.

@@ -147,7 +147,8 @@ module cylinder_outer(h, d=undef, r=undef) {
     // entirely encompasses a given cylinder
     assert (!(r == undef) || (d == undef));
     radius = (r == undef) ? d/2 : r;
-    fudge = 1/cos(180/$fn);
+    fn = ($fn > 0) ? max($fn, 3) : ceil(max(min(360/$fa,r*2*PI/$fs),5));
+    fudge = 1/cos(180/fn);
     cylinder(h=h, r=radius*fudge);
 }
 
@@ -155,7 +156,8 @@ module cylinder_mid(h, d=undef, r=undef) {
     // the mid-point between cylinder and cylinder_outer
     assert (!(r == undef) || (d == undef));
     radius = (r == undef) ? d/2 : r;
-    fudge = (1+1/cos(180/$fn))/2;
+    fn = ($fn > 0) ? max($fn, 3) : ceil(max(min(360/$fa,r*2*PI/$fs),5));
+    fudge = (1+1/cos(180/fn))/2;
     cylinder(h=h, r=radius*fudge);
 }
 
@@ -164,7 +166,8 @@ module circle_outer(d=undef, r=undef) {
     // entirely encompasses a given circle
     assert (!(r == undef) || (d == undef));
     radius = (r == undef) ? d/2 : r;
-    fudge = 1/cos(180/$fn);
+    fn = ($fn > 0) ? max($fn, 3) : ceil(max(min(360/$fa,r*2*PI/$fs),5));
+    fudge = 1/cos(180/fn);
     circle(r=radius*fudge);
 }
 
@@ -172,7 +175,8 @@ module circle_mid(d=undef, r=undef) {
     // the mid-point between circle and circle_outer
     assert (!(r == undef) || (d == undef));
     radius = (r == undef) ? d/2 : r;
-    fudge = (1+1/cos(180/$fn))/2;
+    fn = ($fn > 0) ? max($fn, 3) : ceil(max(min(360/$fa,r*2*PI/$fs),5));
+    fudge = (1+1/cos(180/fn))/2;
     circle(r=radius*fudge);
 }
 
@@ -185,28 +189,29 @@ module ellipsoid(x, y, height) {
 }
 
 module elliptical_pipe(x, y, height, thick)
-linear_extrude(height) difference() {
+linear_extrude(height, convexity=3) difference() {
     scale([1, (y+thick)/(x+thick), 1]) circle(d=x+thick);
     scale([1, y/x, 1]) circle(d=x);
-
 }
 
-module pipe_rt(height, radius, thickness) { difference() {
+module pipe_rt(height, radius, thickness)
+linear_extrude(height, convexity=3) difference() {
     // For when you know the outer radius and the wall thickness.
-    cylinder(h=height, r=radius);
-    translate([0, 0, -epsilon])
-      cylinder_outer(h=height+epsilo2, r=max(radius-thickness, 0));
-}};
+    circle(r=radius);
+    circle(r=radius-thickness);
+}
 
-module pipe_oi(height, o_radius, i_radius) { difference() {
+module pipe_oi(height, o_radius, i_radius)
+linear_extrude(height, convexity=3) difference() {
     // For when you know the outer and inner radius but not the wall thickness.
-    cylinder(h=height, r=o_radius);
-    translate([0, 0, -epsilon])
-      cylinder_outer(h=height+epsilo2, r=i_radius);
-}};
+    circle(r=o_radius);
+    circle_outer(r=i_radius);
+}
 
 module hollow_cone_rt(height, bottom_radius, top_radius, thickness) { difference() {
     // For when you know the outer radii and the wall thickness.
+    // We can't do cones with the linear_extrude, so we have to do it with
+    // cylinders.  This may not cope well with some $fn/$fa/$fs settings.
     cylinder(h=height, r1=bottom_radius, r2=top_radius);
     translate([0, 0, -epsilon]) cylinder(
         h=height+epsilo2,
@@ -256,12 +261,24 @@ module pipe_rt_segment(radius, thickness, height, angle) {
 
 module torus(outer, inner, x_stretch=1, angle=360) {
     // a torus whose ring is a circle of outer-inner radius,
-    // centred on a circle of outer radius.
-    rotate_extrude(angle=angle, convexity=2)
-        translate([max(outer-inner, 0), 0, 0]) scale([x_stretch, 1, 1]) circle(r=inner);
-
+    // centred on a circle of outer radius.  Can be scaled to make a flat or
+    // tall toroid.
+    assert(outer > inner, "Torus inner must be less than outer");
+    rotate_extrude(angle=angle, convexity=2) translate([max(outer-inner, 0), 0, 0]) 
+      scale([x_stretch, 1, 1]) circle(r=inner);
 }
 
+module toroidal_pipe(bend_radius, pipe_i_radius, thickness, angle=360) {
+    // A toroidal pipe with *inner* radius and wall thickness, with an outer bend
+    // radius.  Elliptical toroidal pipes need a different scaling calculation
+    // and are handled separately.
+    assert(bend_radius > pipe_i_radius+thickness*2, "Pipe radius must be less than bend radius");
+    rotate_extrude(angle=angle, convexity=2)
+      translate([max(bend_radius-pipe_i_radius, 0), 0, 0]) difference() {
+        circle(r=pipe_i_radius+thickness);
+        circle_outer(r=pipe_i_radius);
+    }
+}
 
 module quarter_torus_bend_snub_end(outer_rad, width, angle, outer=true) {
     // A torus's upper quarter - inner or outer depending on the 'outer' setting
@@ -289,48 +306,61 @@ module quarter_torus_bend_snub_end(outer_rad, width, angle, outer=true) {
     }
 }
 
-module conduit_angle_bend_straight_join(
-    bend_radius, pipe_radius, bend_angle, thickness, join_length, overlap_len,
-    join_a=true, join_b=true, flare_a=true, flare_b=true
-) {
-    // A piece of conduit with a pipe outer radius (not diameter) and wall
+module conduit_angle_bend(
+    bend_radius, pipe_radius, bend_angle, thickness, join_length, join_radius=undef,
+    join_a=true, join_b=true, flare_a=true, flare_b=true,
+    curved_a=false, curved_b=false
+) union() {
+    // A piece of conduit with a pipe *inner* radius (not diameter) and wall
     // thickness, curving around a bend angle at a bend radius from the centre
     // of the circle.  The two ends can have straight flanges (a flange allows
     // a pipe of pipe radius to fit inside it) with a join length, overlapping
     // into the angle bend for a given length.  The flanges can be disabled, which
     // will result in a smaller piece of straight pipe of the given radius and
-    // wall thickness (with no overlap).
-
+    // wall thickness (with no overlap).  The flanges can also be curved (to join
+    // another piece of curved pipe) or straight.
+    join_radius = (join_radius!=undef) ? join_radius : pipe_radius + thickness;
     // The actual bend
-    difference() {
-        torus(bend_radius+thickness, pipe_radius, angle=bend_angle);
-        rotate([0, 0, -epsilon]) torus(bend_radius, pipe_radius-thickness, angle=bend_angle+epsilo2);
-    };
+    toroidal_pipe(bend_radius, pipe_radius, thickness, bend_angle);
     // First flange
     if (join_a) {
-        join_a_rad_ext = (flare_a ? overlap_len : 0);
-        translate([bend_radius-pipe_radius+thickness, 0, 0])
+        // because pipe_rt takes outer radius and here we have inner radius
+        join_a_rad = (flare_a ? join_radius : pipe_radius) + thickness;
+        translate([bend_radius-pipe_radius, 0, 0])
           rotate([90, 0, 0]) union() {
-            pipe_rt(join_length, pipe_radius+join_a_rad_ext, thickness);
+            if (curved_a) {
+                j_a_angle=atan2(join_length, bend_radius-join_a_rad);
+                j_a_rad = join_a_rad - thickness;
+                translate([-bend_radius+join_a_rad-thickness, 0, 0]) rotate([90, 0, 0])
+                  toroidal_pipe(bend_radius, join_a_rad-thickness, thickness, angle=j_a_angle);
+            } else {
+                pipe_rt(join_length, join_a_rad, thickness);
+            }
             if (flare_a) {
-                translate([0, 0, -overlap_len]) hollow_cone_rt(
-                  thickness, pipe_radius,
-                  pipe_radius+join_a_rad_ext, thickness
+                translate([0, 0, -thickness]) hollow_cone_rt(
+                  thickness, pipe_radius+thickness, join_a_rad, thickness
                 );
             }
         }
     }
     // Second flange (taken around the angle)
     if (join_b) {
-        join_b_rad_ext = (flare_b ? overlap_len : 0);
-        rotate([0, 0, bend_angle])
-          translate([bend_radius-pipe_radius+thickness, join_length-join_b_rad_ext, 0])
-          rotate([90, 0, 0]) union() {
-            pipe_rt(join_length, pipe_radius+join_b_rad_ext, thickness);
+        join_b_rad = (flare_b ? join_radius : pipe_radius) + thickness;
+        rotate([90, 0, bend_angle]) {
+            if (curved_b) {
+                j_b_angle = atan2(join_length, bend_radius-join_b_rad);
+                j_b_rad = join_b_rad - thickness;
+                translate([flare_b ? thickness : 0, 0, 0])
+                rotate([90, j_b_angle, 0])
+                  toroidal_pipe(bend_radius, j_b_rad, thickness, j_b_angle);
+            } else {
+                translate([bend_radius-join_radius+thickness, 0, -join_length])
+                pipe_rt(join_length, join_b_rad, thickness);
+            }
             if (flare_b) {
-                translate([0, 0, join_length]) hollow_cone_rt(
-                  thickness, pipe_radius+join_b_rad_ext,
-                  pipe_radius, thickness
+                translate([bend_radius-join_b_rad+thickness*2, 0, 0])
+                hollow_cone_rt(
+                  thickness, join_b_rad, pipe_radius+thickness, thickness
                 );
             }
         }
@@ -343,22 +373,11 @@ module conduit_angle_bend_straight_join(
 
 module rectangular_pipe(width, height, thickness, length) difference() {
     // a rectangular pipe of OUTER width (X) and height (Z), with walls of thickness,
-    // going length in the Y direction.
+    // going length in the Y direction.  Bore of pipe is along Y axis.
     cube([width, length, height]);
     translate([thickness, -epsilon, thickness]) cube([
       width-thickness*2, length+epsilo2, height-thickness*2
     ]);
-}
-
-module hollow_cube(length, width, height, wall_t) {
-    // a rectangular pipe of OUTER length (X) and width (Y), with walls of thickness,
-    // going height in the Z direction.
-    difference() {
-        two_t = wall_t*2;
-        cube([length, width, height]);
-        translate([wall_t, wall_t, -epsilon])
-          cube([length-two_t, width-two_t, height+epsilo2]);
-    }
 }
 
 module rectangular_tube(x, y, thickness, height) {
@@ -598,6 +617,10 @@ module flat_head_bolt_hole(shaft_d, shaft_len, head_d, head_len) {
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// HEXAGON SHAPES
+////////////////////////////////////////////////////////////////////////////////
+
 module hexagon(radius) {
     // A hexagon centred on the origin, with points on the X-Y plane, extending
     // up into the +Z.  Diameter is from point to point, not flat to flat.
@@ -612,11 +635,5 @@ module hexagon(radius) {
 module hexagon_solid(radius, height) {
     // A hexagon centred on the origin, with points on the X-Y plane, extending
     // up into the +Z.  Diameter is from point to point, not flat to flat.
-    radius2 = radius*sin(30);
-    radius3 = radius*sin(60);
-    linear_extrude(height)
-    polygon([  // going anticlockwise
-        [radius, 0], [radius2, radius3], [-radius2, radius3],
-        [-radius, 0], [-radius2, -radius3], [radius2, -radius3],
-    ]);
+    linear_extrude(height) hexagon(radius);
 }

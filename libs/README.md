@@ -116,11 +116,19 @@ Modules:
   - `flat_head_bolt_hole(shaft_d, shaft_len, head_d, head_len)`
 - **Triangles**
   - `equ_triangle(side)`
+    - An equilateral triangle, with one point on the origin and one side along
+      the X axis.
   - `arb_triangle(ab, bc, ac)`
+    - An arbitrary triangle, given three side lengths.  Point A is at the
+      origin, and point B is along the X axis (i.e. at `(ab, 0)`).  Point C
+      has its X and Y coordinates calculated.
 - **Hexagons**
   - `hexagon(radius)`
+    - A 2D hexagon
   - `hexagon_solid(radius, height)`
+    - A `linear_extrude`d hexagon.
   - `tapered_hexagon(radius1, radius2, height)`
+    - A hexagon that goes from radius1 to radius2 as it goes up.
 
 **File: `gears.scad`**
 

@@ -618,6 +618,31 @@ module flat_head_bolt_hole(shaft_d, shaft_len, head_d, head_len) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// TRIANGLE SHAPES
+////////////////////////////////////////////////////////////////////////////////
+
+module equ_triangle(side) {
+    // the easy case
+    polygon([[0, 0], [side, 0], [side/2, side*sin(60)]]);
+}
+
+module arb_triangle(ab, bc, ac) {
+    // the complicated case - three distances.  Point A is on the origin,
+    // and side ab is along the X axis.  We use the law of cosines to
+    // derive cos(CAB), substitute that into the polar-to-cartesian
+    // calculation to derive ac's X component, and then use Pythagoras'
+    // Theorem knowing the hypotenuse of that right angled triangle ab-x-y.
+    assert(
+        max(ab, bc, ac) < ((ab+bc+ac)-max(ab, bc, ac)),
+        "Longest side must be shorter than the other two sides combined"
+    );
+    let(x=(bc*bc+ac*ac-ab*ab)/(2*bc), y=sqrt(ac*ac-x*x)) {
+        echo(ac=ac, x=x, y=y);
+        polygon([[0, 0], [ac, 0], [x, y]]);
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // HEXAGON SHAPES
 ////////////////////////////////////////////////////////////////////////////////
 

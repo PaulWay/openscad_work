@@ -103,7 +103,7 @@ module hexahedron(corners, convexity=1) {
     // listed in this order:
     // - the bottom four corners, such that going around them in the order
     //   0, 1, 2, 3 is a clockwise circle as seen from the outside facing
-    //   inward.
+    //   inward (i.e. from the bottom, looking up).
     // - the top four corners, such that going around them in the order
     //   *7, 6, 5, 4* is a *clockwise* circle as seen from the outside
     //   facing inward.  In other words, the top four are in the opposite
@@ -445,9 +445,9 @@ module rectangular_pipe_bend(width, height, thickness, inner_radius, bend_angle)
 
 module rectangular_pipe_bend_straight_ends(
     width, height, thickness, inner_radius, bend_angle, join_length,
-    overlap_len, join_a=true, join_b=true, flare_a=true, flare_b=true
+    overlap_len, join_a=true, join_b=true, flange_a=true, flange_b=true,
+    curved_a=false, curved_b=false
 ){
-    assert
     // a rectangular pipe of inner measurements width * height, bent around
     // inner_radius, with walls of thickness.  Pipe is on XY plane, starting
     // from +xz plane.
@@ -661,4 +661,33 @@ module hexagon_solid(radius, height) {
     // A hexagon centred on the origin, with points on the X-Y plane, extending
     // up into the +Z.  Diameter is from point to point, not flat to flat.
     linear_extrude(height) hexagon(radius);
+}
+
+module tapered_hexagon(radius1, radius2, height) {
+    // We have to construct this from a polyhedron, since linear_extrude doesn't
+    // do expansion and I don't really want to have to come up with the three
+    // dimensional scale transform.
+    radius1b = radius1*sin(30);
+    radius1c = radius1*sin(60);
+    radius2b = radius2*sin(30);
+    radius2c = radius2*sin(60);
+    polyhedron([
+        // bottom hexagon
+        [radius1, 0, 0], [radius1b, radius1c, 0],
+        [-radius1b, radius1c, 0], [-radius1, 0, 0],
+        [-radius1b, -radius1c, 0], [radius1b, -radius1c, 0],
+        // top hexagon
+        [radius2, 0, height], [radius2b, radius2c, height],
+        [-radius2b, radius2c, height], [-radius2, 0, height],
+        [-radius2b, -radius2c, height], [radius2b, -radius2c, height],
+    ], [
+        [0, 1, 2, 3, 4, 5],  // bottom hexagon
+        [0, 6, 7, 1], // side 1
+        [1, 7, 8, 2], // side 2
+        [2, 8, 9, 3], // side 3
+        [3, 9, 10, 4], // side 4
+        [4, 10, 11, 5], // side 5
+        [5, 11, 6, 0], // side 6
+        [11, 10, 9, 8, 7, 6], // top hexagon
+    ]);
 }

@@ -367,6 +367,26 @@ module rectangular_cone(x1, y1, x2, y2, height) {
 };
 
 
+module rectangular_hollow_cone(height, x1, y1, x2, y2, thickness) {
+    // Like the hollow_cone_rt, but as a rectangle; bottom goes from
+    // -(x1+thickness),-(y1+thickness) to +(x1+thickness),+(y1+thickness)
+    // and top likewise.  I.e. x1,x2 and y1,y2 are the INNER radius.
+    polyhedron(points=[
+        [-(x1+thickness),-(y1+thickness), 0], [+(x1+thickness),-(y1+thickness), 0],
+        [+(x1+thickness),+(y1+thickness), 0], [-(x1+thickness),+(y1+thickness), 0],
+        [-x1, -y1, 0], [+x1, -y1, 0], [+x1, +y1, 0], [-x1, +y1, 0],
+        [-(x2+thickness),-(y2+thickness), height], [+(x2+thickness),-(y2+thickness), height],
+        [+(x2+thickness),+(y2+thickness), height], [-(x2+thickness),+(y2+thickness), height],
+        [-x2, -y2, height], [+x2, -y2, height], [+x2, +y2, height], [-x2, +y2, height],
+    ], faces=[
+        [0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7], // bottom
+        [0, 8, 9, 1], [1, 9, 10, 2], [2, 10, 11, 3], [3, 11, 8, 0], // outside
+        [4, 5, 13, 12], [5, 6, 14, 13], [6, 7, 15, 14], [7, 4, 12, 15], // inside
+        [8, 12, 13, 9], [9, 13, 14, 10], [10, 14, 15, 11], [11, 15, 12, 8] // top
+    ], convexity=2);
+}
+
+
 module rectangular_torus(outer, inner, height, angle=360) {
     // a torus from inner radius to outer radius - thickness is
     // outer-inner - and height in z.
@@ -376,22 +396,18 @@ module rectangular_torus(outer, inner, height, angle=360) {
 }
 
 module rectangular_pipe_bend(width, height, thickness, inner_radius, bend_angle) {
-    difference() {
-        rectangular_torus(
-          width+inner_radius+thickness*2, inner_radius,
-          height+thickness*2, bend_angle
-        );
-        translate([0, 0, thickness]) rotate([0, 0, -0.01]) rectangular_torus(
-          width+inner_radius+thickness, inner_radius+thickness,
-          height, bend_angle+0.02
-        );
+    rotate_extrude(angle=bend_angle, convexity=2)
+      translate([inner_radius, 0, 0]) difference() {
+        square([width+thickness*2, height+thickness*2]);
+        translate([thickness, thickness, 0]) square([width, height]);
     }
 }
 
 module rectangular_pipe_bend_straight_ends(
     width, height, thickness, inner_radius, bend_angle, join_length,
-    overlap_len, join_a=true, join_b=true, flange_a=true, flange_b=true
+    overlap_len, join_a=true, join_b=true, flare_a=true, flare_b=true
 ){
+    assert
     // a rectangular pipe of inner measurements width * height, bent around
     // inner_radius, with walls of thickness.  Pipe is on XY plane, starting
     // from +xz plane.
@@ -399,16 +415,16 @@ module rectangular_pipe_bend_straight_ends(
         width, height, thickness, inner_radius, bend_angle
     );
     if (join_a) {
-        fa_thick = flange_a ? thickness*2 : 0;
+        fa_thick = flare_a ? thickness*2 : 0;
         fa_outer = fa_thick + thickness*2;
         translate([inner_radius-fa_thick, 0, -fa_thick]) difference() {
             cube([width+fa_outer, join_length+overlap_len, height+fa_outer]);
             translate([thickness, -0.01, thickness])
               cube([width+fa_thick, join_length+overlap_len+0.02, height+fa_thick]);
-        }
+        };
     };
     if (join_b) {
-        fb_thick = flange_b ? thickness : 0;
+        fb_thick = flare_b ? thickness : 0;
         fb_outer = fb_thick + thickness*2;
         translate([0, join_length, 0]) rotate([0, 0, bend_angle])
           translate([inner_radius-fb_thick, 0, -fb_thick]) difference() {
@@ -424,7 +440,7 @@ module rectangular_pipe_bend_curved_ends(
     overlap_angle, join_a=true, join_b=true, flange_a=true, flange_b=true
 ) {
     // a rectangular pipe of inner measurements width * height, bent around
-    // inner_radius for bend_anghe, with walls of thickness.  Pipe is on XY
+    // inner_radius for bend_angle, with walls of thickness.  Pipe is on XY
     // plane, starting from +xz plane.  If flange_a and/or flange_b is set,
     // these parts (the 'a' and 'b' ends of the pipe) are flared (extending
     // below XY plane). Total bend angle is bend_angle +

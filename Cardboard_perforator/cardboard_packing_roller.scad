@@ -1,4 +1,4 @@
-use <gears.scad>;
+use <../libs/gears.scad>;
 
 $fn = 50;
 eps = 0.01; ep2 = 0.02;
@@ -14,7 +14,7 @@ module centre_roller(roller_diam, shaft_diam, key_x, key_y, axis_off, height) {
     }
 }
 
-module cutter_roller(roller_diam, shaft_diam, key_x, key_y, axis_off, height, angle) {
+module cutter_roller_v1(roller_diam, shaft_diam, key_x, key_y, axis_off, height, angle) {
     min_diam = shaft_diam + axis_off * 2 + 0.4;  // 0.4 = one print width
     h2 = height / 2;
     angle_diam = roller_diam - h2 / tan(angle);
@@ -29,6 +29,31 @@ module cutter_roller(roller_diam, shaft_diam, key_x, key_y, axis_off, height, an
             if (min_diam > angle_diam) {
                 cylinder(d=min_diam, h=height);
             }
+        }
+        // The centre bearing
+        translate([0, 0, -eps]) cylinder(d=shaft_diam, h=height+ep2);
+        // The key
+        translate([-key_x/2, shaft_diam/2, -eps]) cube([key_x, key_y, height+ep2]);
+    }
+}
+
+module cutter_roller_v2(
+    roller_diam, shaft_diam, key_x, key_y, height, 
+    blade_angle=45, cutter_angle=180
+) {
+    min_rad = sqrt(key_x*key_x + key_y*key_y)+1;
+    cutter_outer_rad = roller_diam - min_rad - 2;  // conversion from diameter to radius
+    h2 = height / 2;
+    cutter_inner_rad = cutter_outer_rad - h2 / tan(blade_angle);
+    difference() {
+        // The center roller and the cutter part
+        union() {
+            cylinder(h=height, r=min_rad);
+            rotate_extrude(angle=cutter_angle, convexity=2) polygon([
+                [0, 0], [cutter_outer_rad, 0],
+                [cutter_inner_rad, h2], [cutter_outer_rad, height],
+                [0, height]
+            ]);
         }
         // The centre bearing
         translate([0, 0, -eps]) cylinder(d=shaft_diam, h=height+ep2);
@@ -56,7 +81,8 @@ key_y = 3.3;
 axis_off = 5;
 height = 10;
 
-cutter_roller(roller_diam, shaft_diam, key_x, key_y, axis_off, height, 30);
+rotate([0, 0, -$t*360]) cutter_roller_v2(roller_diam, shaft_diam, key_x, key_y, height);
+translate([0, 40, 0]) rotate([0, 0, $t*360]) cutter_roller_v2(roller_diam, shaft_diam, key_x, key_y, height);
 
 // bearing diameter = corner point of key
 x = key_x/2;
@@ -97,14 +123,6 @@ module this_gear(max_diam, tooth_height, key_rotate=0) {difference() {
 // translate([(roller_diam+separation/2)*1, 0, height*1]) // layout check
 * translate([(roller_diam+8)*1, (end_block_width)*1, 0]) // print pattern
   this_gear(roller_diam, 1.5);
-//  difference() {
-//    herringbone_gear(
-//        tooth_height, teeth, height, shaft_diam, 
-//        pressure_angle=20, helix_angle=40, optimized=false
-//    );
-//    // The key
-//    translate([-key_x/2, shaft_diam/2, -eps]) cube([key_x, key_y, height+ep2]);
-//};    
 // translate([(roller_diam+separation/2)*0, 0, height*1]) // layout check
 * translate([(roller_diam+8)*0, (end_block_width)*1, 0]) // print pattern
   difference() {

@@ -1,4 +1,5 @@
 include <../libs/pw_primitives.scad>;
+include <../libs/pw_funcs.scad>;
 
 module twist_vase(base_height, vase_height, corner_rad, twist) union() {
     translate([0, 0, base_height]) 
@@ -15,6 +16,7 @@ module twist_vase(base_height, vase_height, corner_rad, twist) union() {
     }
 }
 
+$fa = 2;
 base_height = 5;
 vase_height = 100;
 vase_width = 50;  vase_thick = 4;  vase_outer_r = 15;
@@ -25,5 +27,8 @@ twist = 45;
 * twist_vase(base_height, vase_height, vase_outer_r, twist)
   square(vase_width, center=true);
 
-twist_vase(base_height, vase_height, 10, -120)
+* twist_vase(base_height, vase_height, 10, -120)
   hexagon(40);
+
+twist_vase(base_height, 120, 40, -90)
+  square([10, 50], center=true);

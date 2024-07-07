@@ -19,15 +19,13 @@ module interface_plate() translate([0, 0, 2.5]) difference() {
     interface_plate();
 }
 
-* translate([0, 0, 0]) union() {
+translate([0, 0, 0]) union() {
     translate([-(120/2+5), -(100+160/2+5), 0]) rotate([90, 0, 90]) 
-      rectangular_pipe_bend_curved_ends(
+      rectangular_pipe_bend(
         // width, height, thickness, inner_radius, bend_angle, join_length,
-        // overlap_len, join_a=true, join_b=true, flange_a=true, flange_b=true,
+        // overlap_len, join_a=true, join_b=true, flare_a=true, flare_b=true,
         // curved_a=false, curved_b=false
-        160, 120, 5, 100, 45, 10, 5, join_a=false
+        160, 120, 5, 100, 45, 30, join_a=false, join_b=true, curved_b=true, flare_b=true
       );
     interface_plate();
-}
-
-rectangular_pipe_bend(
+};

@@ -11,11 +11,6 @@ swept_angle = 90/3;
 join_overlap = 2.5;
 flange_angle = 10;
 
-module toroidal_pipe(outer_rad, inner_rad, thickness, bend_angle) { difference() {
-    torus(outer_rad+thickness, inner_rad+thickness, bend_angle);
-    rotate([0, 0, -0.01]) torus(outer_rad, inner_rad, bend_angle + 0.02);
-}}
-
 translate([-(outer_rad-inner_rad), 0, 0]) rotate([90, 0, 0]) union() {
     // The segment of pipe, which starts flange_angle up and goes to swept_angle
     rotate([0, 0, flange_angle]) toroidal_pipe(outer_rad, inner_rad, thickness, swept_angle);
@@ -23,7 +18,7 @@ translate([-(outer_rad-inner_rad), 0, 0]) rotate([90, 0, 0]) union() {
     rotate([0, 0, 0]) 
       toroidal_pipe(outer_rad+thickness, inner_rad+thickness, thickness, flange_angle);
     // The overlap, which makes sure that that those two hollow toroids connect
-    rotate([0, 0, flange_angle - join_overlap]) 
+    rotate([0, 0, flange_angle - join_overlap])
       toroidal_pipe(outer_rad, inner_rad, thickness*2, join_overlap);
 }
 

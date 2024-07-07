@@ -54,7 +54,7 @@ module base_bolt(x, y) {
 
 // The top:
 //translate([0, base_width+10, 0]) 
-union() {
+* translate([0, 0, body_height]) mirror([0, 0, 1]) union() {
     difference() {
         union() {
             // body
@@ -95,4 +95,57 @@ union() {
         cube([batt_space_length, batt_space_width, batt_space_height]);
         
     };
+}
+
+
+// The back of the circuit board.  This has cutouts for the DC jack (right) and the
+// switch (in this case an R13-66 switch, but change the switch width and height to
+// suit yourself).
+
+bp_max_wid = 48.35;
+bp_max_hgt = 21.15;
+bp_min_hgt = 18;
+bp_thick = 1.6;
+bp_cnr_rad = 4;
+ellipse_hgt = 22;
+// These X and Y measurements are from the LHS when looking FROM THE CIRCUIT
+// BOARD DIRECTION.  That's because we have to then print a channel to mount
+// the circuit board 'onto' this.
+bp_dc_in_w = 9.5; bp_dc_in_h = 11.5;
+bp_dc_in_x = 9.5; bp_dc_in_y = 3;
+bp_sw_wid = 20; bp_sw_hgt = 12;
+bp_sw_x = bp_max_wid-(bp_sw_wid+5); bp_sw_y = 4;
+bp_board_h = 1.9;  bp_brd_mt_h = 1.1;  bp_brd_mt_w = 6;  bp_brd_mt_l = 10;
+bp_brd_mt_y = bp_dc_in_y - (bp_board_h + bp_brd_mt_h);
+bp_brd_mt_x1 = 2;  bp_brd_mt_x2 = bp_max_wid - (bp_brd_mt_w + bp_brd_mt_x1);
+
+union() {
+    linear_extrude(bp_thick) difference() {
+        hull() {  // faster to do hull on 2d and linear_extrude than with 3D
+            intersection() {
+                translate([bp_max_wid/2, bp_max_hgt-ellipse_hgt/2, 0])
+                  ellipse(bp_max_wid*1.25, ellipse_hgt);
+                translate([bp_cnr_rad-0.5, 0])
+                  square([bp_max_wid-(bp_cnr_rad-0.5)*2, bp_max_hgt]);
+            }
+            translate([bp_max_wid-bp_cnr_rad, bp_min_hgt-bp_cnr_rad, 0])
+              circle(r=bp_cnr_rad);
+            translate([bp_cnr_rad, bp_min_hgt-bp_cnr_rad, 0])
+              circle(r=bp_cnr_rad);
+            square([bp_max_wid, bp_min_hgt-bp_cnr_rad]);
+        }
+        // DC jack cutout
+        translate([bp_dc_in_x, bp_dc_in_y]) square([bp_dc_in_w, bp_dc_in_h]);
+        // Switch cutout
+        translate([bp_sw_x, bp_sw_y]) square([bp_sw_wid, bp_sw_hgt]);
+    }
+    // board mounts
+    translate([bp_brd_mt_x1, bp_brd_mt_y, bp_thick])
+      cube([bp_brd_mt_w, bp_brd_mt_h, bp_brd_mt_l]);
+    translate([bp_brd_mt_x1, bp_brd_mt_y+bp_brd_mt_h+bp_board_h, bp_thick])
+      cube([bp_brd_mt_w, bp_brd_mt_h, bp_brd_mt_l]);
+    translate([bp_brd_mt_x2, bp_brd_mt_y, bp_thick])
+      cube([bp_brd_mt_w, bp_brd_mt_h, bp_brd_mt_l]);
+    translate([bp_brd_mt_x2, bp_brd_mt_y+bp_brd_mt_h+bp_board_h, bp_thick])
+      cube([bp_brd_mt_w, bp_brd_mt_h, bp_brd_mt_l]);
 }

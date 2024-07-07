@@ -52,22 +52,34 @@ function arith_spiral(start_rad, end_rad, steps, angle=360) = [
 // Translate a list of points from [r, theta] into [x, y]
 function polar_to_cart(points) = [
     for (point = points)
-    echo(point)
-    [point[0]*sin(point[1]), point[0]*cos(point[1])]
+    [point[0]*cos(point[1]), point[0]*sin(point[1])]
 ];
 
-// 'Scale' a list of polar coordinate points.  The first value will
-// move the points inward or outward; the second will multiply their rotation
-// the Z axis from the X axis (zero degrees).
+// 'Scale' a list of polar coordinate points.  The first value of the scale
+// vector will scale the points inward or outward; the second will multiply
+// their rotation around the Z axis from the X axis (zero degrees).  NOTE:
+// Use negative theta scale values to reverse the direction of an arc.
 function p_scale(points, scale_vec) = [
     for (point = points)
     [point[0]*scale_vec[0], point[1]*scale_vec[1]]
 ];
 
+// 'Translate' a list of polar coordinate points.  The first value of the
+// translation vector will move all points outward or inward by this much,
+// and the second value will add to or subtract from their rotation around
+// the Z axis.
+function p_translate(points, trans_vec) = [
+    for (point = points)
+    [point[0]+trans_vec[0], point[1]+trans_vec[1]]
+];
+
 // Draw an arc in polar coordinates, at constant r distance from the origin,
 // of a particular theta length from the X axis.  The arc is divided into
 // a number of steps, either by the given value or the $fn or $fa values,
-// so that it can be translated back into cartesian coordinates.
+// so that it can be translated back into cartesian coordinates.  Because of
+// the test in the for loop, this can only generate a set of points that go
+// anti-clockwise.  If you want them to go clockwise instead, use p_scale()
+// with a negative theta.
 function p_arc(r, arc_len, steps=0) = [
     let (arc_frac=(steps>0) ? arc_len/steps : ($fn > 0) ? (360/$fn) : $fa)
     for (theta=0; theta <= arc_len; theta = theta + arc_frac) [r, theta]

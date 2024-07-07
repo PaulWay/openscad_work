@@ -100,13 +100,16 @@ Modules:
   - `rectangular_tube(x, y, thickness, height)`
   - `rectangular_cone(x1, y1, x2, y2, height)`
   - `rectangular_torus(outer, inner, height, angle=360)`
-  - `rectangular_pipe_bend(width, height, thickness, inner_radius, bend_angle)`
-  - `rectangular_pipe_bend_straight_ends(
+  - `rectangular_pipe_bend_basic(width, height, thickness, inner_radius, bend_angle)`
+  - `rectangular_pipe_bend(
     width, height, thickness, inner_radius, bend_angle, join_length,
-    overlap_len, join_a=true, join_b=true, flange_a=true, flange_b=true)`
-  - `module rectangular_pipe_bend_curved_ends(
-    width, height, thickness, inner_radius, bend_angle, join_angle,
-    overlap_angle, join_a=true, join_b=true, flange_a=true, flange_b=true)`
+    overlap_len, join_a=true, join_b=true, flare_a=true, flare_b=true,
+    curved_a=false, curved_b=false
+    )`
+    - A curved rectangular pipe, rotating around the Z axis so X=width and
+      Z=height.  This can produce straight or curved join segments at either
+      end ('a' is the end at the XZ plane, 'b' is the other), either flared
+      (i.e. accepting a pipe of this width and height) or not.
 - **Springs**
   - `coil_spring(spring_r, wire_r, rise_per_rev, turns, step_deg)`
   - `flat_spring(length, width, height, gap_length, segments)`

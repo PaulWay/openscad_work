@@ -371,21 +371,27 @@ module conduit_angle_bend(
 // RECTANGULAR TUBES AND TOROIDS
 ////////////////////////////////////////////////////////////////////////////////
 
-module rectangular_pipe(width, height, thickness, length) difference() {
-    // a rectangular pipe of OUTER width (X) and height (Z), with walls of thickness,
-    // going length in the Y direction.  Bore of pipe is along Y axis.
-    cube([width, length, height]);
-    translate([thickness, -epsilon, thickness]) cube([
-      width-thickness*2, length+epsilo2, height-thickness*2
-    ]);
-}
-
 module rectangular_tube(x, y, thickness, height) {
     // x and y are INNER widths, and tube goes in the Z direction like a cylinder.
-    difference() {
-        cube([x+thickness*2, y+thickness*2, height]);
-        translate([thickness, thickness, -epsilon]) cube([x, y, height+epsilo2]);
+    // difference() {
+    //     cube([x+thickness*2, y+thickness*2, height]);
+    //     translate([thickness, thickness, -epsilon]) cube([x, y, height+epsilo2]);
+    // }
+    linear_extrude(height, convexity=3) difference() {
+        square([x+thickness*2, y+thickness*2]);
+        translate([thickness, thickness]) square([x, y]);
     }
+}
+
+module rectangular_pipe(width, height, thickness, length) {
+    // Re-orient the rectangular_tube to the same dimensions and orientation
+    // of rectangular_tube.  Width in X, height in Z, pipe goes length along
+    // Y dimension, width and height are OUTER measurements.
+    echo("*** using rectangular_pipe, consider using rectangular_tube ***");
+    t2 = thickness*2;
+    rotate([-90, 0, 0]) translate([0, -height, 0]) rectangular_tube(
+        width-t2, height-t2, thickness, length
+    );
 }
 
 module rectangular_cone(x1, y1, x2, y2, height, center=true) {
@@ -408,11 +414,11 @@ module rectangular_cone(x1, y1, x2, y2, height, center=true) {
 };
 
 
-module rectangular_hollow_cone(height, x1, y1, x2, y2, thickness) {
+module rectangular_hollow_cone(height, x1, y1, x2, y2, thickness, center=true) {
     // Like the hollow_cone_rt, but as a rectangle; bottom goes from
     // -(x1+thickness),-(y1+thickness) to +(x1+thickness),+(y1+thickness)
     // and top likewise.  I.e. x1,x2 and y1,y2 are the INNER radius.
-    polyhedron(points=[
+    translate([center?0:x1, center?0:y1, 0]) polyhedron(points=[
         [-(x1+thickness),-(y1+thickness), 0], [+(x1+thickness),-(y1+thickness), 0],
         [+(x1+thickness),+(y1+thickness), 0], [-(x1+thickness),+(y1+thickness), 0],
         [-x1, -y1, 0], [+x1, -y1, 0], [+x1, +y1, 0], [-x1, +y1, 0],
@@ -436,7 +442,7 @@ module rectangular_torus(outer, inner, height, angle=360) {
     }
 }
 
-module rectangular_pipe_bend(width, height, thickness, inner_radius, bend_angle) {
+module rectangular_pipe_bend_basic(width, height, thickness, inner_radius, bend_angle) {
     rotate_extrude(angle=bend_angle, convexity=2)
       translate([inner_radius, 0, 0]) difference() {
         square([width+thickness*2, height+thickness*2]);
@@ -444,89 +450,64 @@ module rectangular_pipe_bend(width, height, thickness, inner_radius, bend_angle)
     }
 }
 
-module rectangular_pipe_bend_straight_ends(
+module rectangular_pipe_bend(
     width, height, thickness, inner_radius, bend_angle, join_length,
-    overlap_len, join_a=true, join_b=true, flange_a=true, flange_b=true,
+    join_a=true, join_b=true, flare_a=true, flare_b=true,
     curved_a=false, curved_b=false
 ){
     // a rectangular pipe of inner measurements width * height, bent around
     // inner_radius, with walls of thickness.  Pipe is on XY plane, starting
     // from +xz plane.
-    join_angle = atan2(join_length, inner_radius);
-    translate([0, join_length, 0]) rectangular_pipe_bend(
+    join_angle = atan2(join_length, inner_radius+width);
+    rectangular_pipe_bend_basic(
         width, height, thickness, inner_radius, bend_angle
     );
     if (join_a) {
         fa_thick = flare_a ? thickness*2 : 0;
         fa_outer = fa_thick + thickness*2;
-        if (flange_a) translate([0, 0, 0]) rotate([-90, 0, 0]) rectangular_cone(
-            width+thickness*2, height+thickness*2, width, height, thickness
-        );
-        translate([0, 0, -fa_thick]) if (curved_a) {
-            rotate([0, 0, overlap_angle-join_angle])
-              rectangular_pipe_bend(
-                width+fa_outer, height+fa_outer, thickness,
+        if (flare_a) {
+            translate([inner_radius, 0, height+thickness*2])
+              rotate([-90, 0, 0]) rectangular_hollow_cone(
+                thickness, width/2+thickness, height/2+thickness, width/2, height/2,
+                thickness, center=false
+            );
+        }
+        translate([0, 0, -fa_thick/2]) if (curved_a) {
+            translate([fa_thick/2, 0, 0]) rotate([0, 0, -join_angle])
+              rectangular_pipe_bend_basic(
+                width+fa_thick, height+fa_thick, thickness,
                 inner_radius-fa_thick, join_angle
               );
         } else {
-            translate([inner_radius-fa_thick, 0, 0]) difference() {
-                cube([width+fa_outer, join_length+overlap_len, height+fa_outer]);
-                translate([thickness, -0.01, thickness])
-                  cube([width+fa_thick, join_length+overlap_len+0.02, height+fa_thick]);
-            }
+            translate([inner_radius-fa_thick/2, -join_length, 0])
+            rectangular_pipe(width+fa_outer, height+fa_outer, thickness, join_length);
         }
     };
     if (join_b) {
         fb_thick = flare_b ? thickness : 0;
         fb_outer = fb_thick + thickness*2;
-        translate([0, join_length, 0]) rotate([0, 0, bend_angle])
-          translate([inner_radius-fb_thick, 0, -fb_thick]) difference() {
-            cube([width+fb_outer, join_length+overlap_len, height+fb_outer]);
-            translate([thickness, -0.01, thickness])
-              cube([width+fb_thick, join_length+overlap_len+0.02, height+fb_thick]);
+        rotate([0, 0, bend_angle]) union() {
+            if (flare_b) {
+                translate([inner_radius+thickness, -thickness, height+thickness])
+                  rotate([-90, 0, 0]) rectangular_hollow_cone(
+                    thickness, width/2, height/2, width/2+thickness, height/2+thickness,
+                    thickness, center=false
+                );
+            }
+            translate([0, 0, -fb_thick/2]) if (curved_b) {
+                translate([0, 0, -fb_thick/2])
+                  rectangular_pipe_bend_basic(
+                    width+fb_thick*2, height+fb_thick*2, thickness,
+                    inner_radius-fb_thick, join_angle
+                  );
+            } else {
+                translate([inner_radius-fb_thick, 0, -fb_thick/2])
+                rectangular_pipe(
+                  width+fb_thick+fb_outer, height+fb_thick+fb_outer,
+                  thickness, join_length
+                );
+            }
         }
-    }
-}
-
-* rectangular_pipe_bend_straight_ends(
-    60, 40, 3, 20, 45, 10,
-    15, join_a=true, join_b=true, flange_a=true, flange_b=true,
-    curved_a=false, curved_b=false
-);
-
-module rectangular_pipe_bend_curved_ends(
-    width, height, thickness, inner_radius, bend_angle, join_angle,
-    overlap_angle, join_a=false, join_b=false, flange_a=true, flange_b=true
-) {
-    // a rectangular pipe of inner measurements width * height, bent around
-    // inner_radius for bend_angle, with walls of thickness.  Pipe is on XY
-    // plane, starting from +xz plane.  If flange_a and/or flange_b is set,
-    // these parts (the 'a' and 'b' ends of the pipe) are flared (extending
-    // below XY plane). Total bend angle is bend_angle +
-    // (join_angle-overlap_angle)*2 - set join and overlap angles to zero to
-    // have no extras.
-    // main bend
-    tor_outer_r = width+inner_radius+thickness;
-    rectangular_pipe_bend(
-        width, height, thickness, inner_radius, bend_angle
-    );
-    // flange a
-    if (join_a) {
-        fa_thick = flange_a ? thickness : 0;
-        fa_outer = fa_thick*2;
-        translate([0, 0, -fa_thick]) rotate([0, 0, overlap_angle-join_angle])
-          rectangular_pipe_bend(
-            width+fa_outer, height+fa_outer, thickness, inner_radius-fa_thick, join_angle
-          );
-    }
-    // flange b
-    if (join_b) {
-        fb_thick = flange_b ? thickness : 0;
-        fb_outer = fb_thick*2;
-        translate([0, 0, -fb_thick]) rotate([0, 0, bend_angle+overlap_angle-join_angle])
-          rectangular_pipe_bend(
-            width+fb_outer, height+fb_outer, thickness, inner_radius-fb_thick, join_angle
-          );
     }
 }
 

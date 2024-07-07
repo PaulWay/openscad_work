@@ -388,12 +388,13 @@ module rectangular_tube(x, y, thickness, height) {
     }
 }
 
-module rectangular_cone(x1, y1, x2, y2, height) {
+module rectangular_cone(x1, y1, x2, y2, height, center=true) {
     // A symmetrical rectangular cone, from -x1,-y1 to x1,y1 on the XY plane
     // and from -x2,-y2 to x2,y2 at height.  This is not really a 'cone'
     // because the x and y can vary independently - i.e. the slope of the X faces
     // can be different from the Y faces, if x1 > x2 but y1 < y2 say.
-    polyhedron(points=[ // points
+    translate([center?0:x1, center?0:y1, 0]) polyhedron(
+    points=[ // points
         [-x1, -y1, 0], [x1, -y1, 0], [x1, y1, 0], [-x1, y1, 0],
         [-x2, -y2, height], [x2, -y2, height], [x2, y2, height], [-x2, y2, height]
     ], faces=[ // faces - clockwise facing in, right hand rule
@@ -451,17 +452,29 @@ module rectangular_pipe_bend_straight_ends(
     // a rectangular pipe of inner measurements width * height, bent around
     // inner_radius, with walls of thickness.  Pipe is on XY plane, starting
     // from +xz plane.
+    join_angle = atan2(join_length, inner_radius);
     translate([0, join_length, 0]) rectangular_pipe_bend(
         width, height, thickness, inner_radius, bend_angle
     );
     if (join_a) {
         fa_thick = flare_a ? thickness*2 : 0;
         fa_outer = fa_thick + thickness*2;
-        translate([inner_radius-fa_thick, 0, -fa_thick]) difference() {
-            cube([width+fa_outer, join_length+overlap_len, height+fa_outer]);
-            translate([thickness, -0.01, thickness])
-              cube([width+fa_thick, join_length+overlap_len+0.02, height+fa_thick]);
-        };
+        if (flange_a) translate([0, 0, 0]) rotate([-90, 0, 0]) rectangular_cone(
+            width+thickness*2, height+thickness*2, width, height, thickness
+        );
+        translate([0, 0, -fa_thick]) if (curved_a) {
+            rotate([0, 0, overlap_angle-join_angle])
+              rectangular_pipe_bend(
+                width+fa_outer, height+fa_outer, thickness,
+                inner_radius-fa_thick, join_angle
+              );
+        } else {
+            translate([inner_radius-fa_thick, 0, 0]) difference() {
+                cube([width+fa_outer, join_length+overlap_len, height+fa_outer]);
+                translate([thickness, -0.01, thickness])
+                  cube([width+fa_thick, join_length+overlap_len+0.02, height+fa_thick]);
+            }
+        }
     };
     if (join_b) {
         fb_thick = flare_b ? thickness : 0;
@@ -475,9 +488,15 @@ module rectangular_pipe_bend_straight_ends(
     }
 }
 
+* rectangular_pipe_bend_straight_ends(
+    60, 40, 3, 20, 45, 10,
+    15, join_a=true, join_b=true, flange_a=true, flange_b=true,
+    curved_a=false, curved_b=false
+);
+
 module rectangular_pipe_bend_curved_ends(
     width, height, thickness, inner_radius, bend_angle, join_angle,
-    overlap_angle, join_a=true, join_b=true, flange_a=true, flange_b=true
+    overlap_angle, join_a=false, join_b=false, flange_a=true, flange_b=true
 ) {
     // a rectangular pipe of inner measurements width * height, bent around
     // inner_radius for bend_angle, with walls of thickness.  Pipe is on XY

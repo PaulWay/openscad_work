@@ -73,14 +73,18 @@ module rounded_box(length, width, height, outer_r) {
     }
 }
 
-module chamfered_cube(x, y, z, side, chamfer_x=true, chamfer_y=true, chamfer_z=true) {
+module chamfered_cube(
+    x, y, z, side, chamfer_x=true, chamfer_y=true, chamfer_z=true, center=true
+) {
     // A simple solid box, chamfered on all sides.
     s2=side*2;
     xoff = chamfer_x ? side : 0; xsub = chamfer_x ? s2 : 0;
     yoff = chamfer_y ? side : 0; ysub = chamfer_y ? s2 : 0;
     zoff = chamfer_z ? side : 0; zsub = chamfer_z ? s2 : 0;
 
-    hull() {
+    translate(center ? [-x/2, -y/2, -z/2] : [0, 0, 0]) if (side == 0) {
+        cube([x, y, z]);
+    } else hull() {
         translate([xoff, yoff, 0]) cube([x-xsub, y-ysub, z]);
         translate([xoff, 0, zoff]) cube([x-xsub, y, z-zsub]);
         translate([0, yoff, zoff]) cube([x, y-ysub, z-zsub]);
@@ -145,7 +149,7 @@ module hexahedron(corners, convexity=1) {
  */
 module cylinder_outer(h, d=undef, r=undef) {
     // entirely encompasses a given cylinder
-    assert (!(r == undef) || (d == undef));
+    assert ((r != undef) || (d != undef), "Must set d for diameter or r for radius");
     radius = (r == undef) ? d/2 : r;
     fn = ($fn > 0) ? max($fn, 3) : ceil(max(min(360/$fa,r*2*PI/$fs),5));
     fudge = 1/cos(180/fn);
@@ -154,7 +158,7 @@ module cylinder_outer(h, d=undef, r=undef) {
 
 module cylinder_mid(h, d=undef, r=undef) {
     // the mid-point between cylinder and cylinder_outer
-    assert (!(r == undef) || (d == undef));
+    assert ((r != undef) || (d != undef), "Must set d for diameter or r for radius");
     radius = (r == undef) ? d/2 : r;
     fn = ($fn > 0) ? max($fn, 3) : ceil(max(min(360/$fa,r*2*PI/$fs),5));
     fudge = (1+1/cos(180/fn))/2;
@@ -164,7 +168,7 @@ module cylinder_mid(h, d=undef, r=undef) {
 
 module circle_outer(d=undef, r=undef) {
     // entirely encompasses a given circle
-    assert (!(r == undef) || (d == undef));
+    assert ((r != undef) || (d != undef), "Must set d for diameter or r for radius");
     radius = (r == undef) ? d/2 : r;
     fn = ($fn > 0) ? max($fn, 3) : ceil(max(min(360/$fa,r*2*PI/$fs),5));
     fudge = 1/cos(180/fn);
@@ -173,11 +177,29 @@ module circle_outer(d=undef, r=undef) {
 
 module circle_mid(d=undef, r=undef) {
     // the mid-point between circle and circle_outer
-    assert (!(r == undef) || (d == undef));
+    assert ((r != undef) || (d != undef), "Must set d for diameter or r for radius");
     radius = (r == undef) ? d/2 : r;
     fn = ($fn > 0) ? max($fn, 3) : ceil(max(min(360/$fa,r*2*PI/$fs),5));
     fudge = (1+1/cos(180/fn))/2;
     circle(r=radius*fudge);
+}
+
+module chamfered_cylinder(
+    height, d=undef, r=undef, chamfer=0, top_chamfer=true, bot_chamfer=true
+) {
+    // A cylinder with a chamfer - or just a cylinder.  The chamfer is
+    // the horizontal / vertical distance in from the unchamfered edge,
+    // not the diagonal width of the chamfer.
+    assert ((r != undef) || (d != undef), "Must set d for diameter or r for radius");
+    radius = (r == undef) ? d/2 : r;
+    if (chamfer == 0 || (!(top_chamfer || bot_chamfer))) {
+        cylinder(h=height, r=radius);
+    } else hull() {
+        bot_raise = bot_chamfer ? chamfer : 0;
+        outer_h = height - ((top_chamfer ? chamfer : 0) + bot_raise);
+        cylinder(h=height, r=radius-chamfer);
+        translate([0, 0, bot_raise]) cylinder(h=outer_h, r=radius);
+    }
 }
 
 module ellipse(x, y) {

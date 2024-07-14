@@ -76,6 +76,7 @@ Modules:
   - `cylinder_mid(h, d=undef, r=undef)`
   - `circle_outer(d=undef, r=undef)`
   - `circle_mid(d=undef, r=undef)`
+  - `chamfered_cylinder(height, d=undef, r=undef, chamfer=0)`
   - `ellipse(x, y)`
   - `ellipsoid(x, y, height)`
   - `elliptical_pipe(x, y, height, thick)`

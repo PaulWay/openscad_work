@@ -84,3 +84,12 @@ function p_arc(r, arc_len, steps=0) = [
     let (arc_frac=(steps>0) ? arc_len/steps : ($fn > 0) ? (360/$fn) : $fa)
     for (theta=0; theta <= arc_len; theta = theta + arc_frac) [r, theta]
 ];
+
+function p_arcline(r1, r2, arc_len, steps=0) = [
+    let (
+        steps = (steps>0) ? steps : arc_len/(($fn > 0) ? (360/$fn) : $fa),
+        arc_frac = arc_len/steps,
+        r_frac = (r2-r1)/(steps-1)
+    )
+    for (step=0; step <= steps; step = step+1) [r1+r_frac*step, arc_frac*step]
+];

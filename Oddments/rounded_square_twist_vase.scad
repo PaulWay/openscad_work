@@ -37,5 +37,5 @@ twist = 45;
   square([10, 50], center=true);
 
 // fairly rounded triangle
-twist_vase(4, 110, 30, 120)
+twist_vase(4, 110, 10, 120, wall_thick=3)
   translate([-25, -(25*cos(60)), 0]) equ_triangle(50);

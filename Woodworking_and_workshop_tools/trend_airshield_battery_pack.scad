@@ -54,7 +54,7 @@ module base_bolt(x, y) {
 
 // The top:
 //translate([0, base_width+10, 0]) 
-* translate([0, 0, body_height]) mirror([0, 0, 1]) union() {
+translate([0, 0, body_height]) mirror([0, 0, 1]) union() {
     difference() {
         union() {
             // body
@@ -113,13 +113,14 @@ ellipse_hgt = 22;
 // the circuit board 'onto' this.
 bp_dc_in_w = 9.5; bp_dc_in_h = 11.5;
 bp_dc_in_x = 9.5; bp_dc_in_y = 3;
-bp_sw_wid = 20; bp_sw_hgt = 12;
+bp_sw_wid = 20.5; bp_sw_hgt = 13;
 bp_sw_x = bp_max_wid-(bp_sw_wid+5); bp_sw_y = 4;
-bp_board_h = 1.9;  bp_brd_mt_h = 1.1;  bp_brd_mt_w = 6;  bp_brd_mt_l = 10;
+bp_board_h = 1.9;  bp_brd_mt_h = 1.1;  bp_brd_mt_w = 6;
+bp_brd_mt_l = 6;  bp_brd_mt_base_l = 3;  bp_brd_mt_base_h = bp_brd_mt_h*2 + bp_board_h;
 bp_brd_mt_y = bp_dc_in_y - (bp_board_h + bp_brd_mt_h);
-bp_brd_mt_x1 = 2;  bp_brd_mt_x2 = bp_max_wid - (bp_brd_mt_w + bp_brd_mt_x1);
+bp_brd_mt_x1 = 3.5;  bp_brd_mt_x2 = bp_max_wid - (bp_brd_mt_w + bp_brd_mt_x1);
 
-union() {
+* union() {
     linear_extrude(bp_thick) difference() {
         hull() {  // faster to do hull on 2d and linear_extrude than with 3D
             intersection() {
@@ -141,9 +142,13 @@ union() {
     }
     // board mounts
     translate([bp_brd_mt_x1, bp_brd_mt_y, bp_thick])
+      cube([bp_brd_mt_w, bp_brd_mt_base_h, bp_brd_mt_base_l]);
+    translate([bp_brd_mt_x1, bp_brd_mt_y, bp_thick])
       cube([bp_brd_mt_w, bp_brd_mt_h, bp_brd_mt_l]);
     translate([bp_brd_mt_x1, bp_brd_mt_y+bp_brd_mt_h+bp_board_h, bp_thick])
       cube([bp_brd_mt_w, bp_brd_mt_h, bp_brd_mt_l]);
+    translate([bp_brd_mt_x2, bp_brd_mt_y, bp_thick])
+      cube([bp_brd_mt_w, bp_brd_mt_base_h, bp_brd_mt_base_l]);
     translate([bp_brd_mt_x2, bp_brd_mt_y, bp_thick])
       cube([bp_brd_mt_w, bp_brd_mt_h, bp_brd_mt_l]);
     translate([bp_brd_mt_x2, bp_brd_mt_y+bp_brd_mt_h+bp_board_h, bp_thick])

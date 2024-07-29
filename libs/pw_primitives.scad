@@ -95,6 +95,7 @@ module rounded_cube(x, y, z, chamfer_rad) {
     // A simple cube with rounded vertical sides but a flat base
     // apparently 'if {}' blocks keep the context of variables, so we can't
     // use that to change the chamfer_rad.
+    // This has no rounding on the base; rounded_box does.
     chamfer_rad = (chamfer_rad >= x/2) || (chamfer_rad >= y/2)
       ? min(x, y)/2 - epsilon : chamfer_rad;
     c2 = chamfer_rad*2;

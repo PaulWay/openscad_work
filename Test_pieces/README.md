@@ -8,6 +8,10 @@ Mainly used when I'm trying out ideas before I put them in my libraries.
 
 Work on angled bends that can attach to standard PVC piping.
 
+**File: `shredder_blade.scad`**
+
+Tests for constructing a shredder blade in plastic.
+
 **File: `spring_tests.scad`**
 
 Testing out both straight and circular 'springs' that use a zig-zag

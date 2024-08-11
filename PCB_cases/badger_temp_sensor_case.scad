@@ -45,7 +45,7 @@ case_wid = badger_wid + case_surround_thick * 2;
 union() {
     difference() {
         // the board
-        rounded_cube(case_len, case_wid, case_height, case_rad);
+        filleted_cube(case_len, case_wid, case_height, case_rad);
         // all the cutouts
         // translate the cutouts relative to the top and start of the case internals
         translate([case_surround_thick, case_surround_thick, case_height+epsilon]) union() {

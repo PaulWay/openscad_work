@@ -14,7 +14,7 @@ $fn=30;
 union() {
     difference() {
         // the case
-        rounded_cube(case_len, case_wid, case_hei, case_rad);
+        filleted_cube(case_len, case_wid, case_hei, case_rad);
         // the board insert
         translate([wall_thick, wall_thick, case_hei+epsilon]) union() {
             board_cutout(

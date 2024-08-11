@@ -65,6 +65,11 @@ Modules:
   - `linear_distribute(start, step, end, tvec = [1, 0, 0])`
     - Distribute children in a for loop, but multiplying the translation
       vector `tvec` by the loop value.
+- **Modifiers**
+  - `flatten(height)`
+    - Take any child object and trim off the bits below the XY plane, and
+      above a plane `height` above the XY plane.  Useful for flattinging
+      round objects onto a plane.
 - **Simple cubic modules**
   - `rounded_box(length, width, height, outer_r)`
   - `module rounded_box(length, width, height, outer_r)`

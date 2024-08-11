@@ -69,7 +69,7 @@ Modules:
   - `rounded_box(length, width, height, outer_r)`
   - `module rounded_box(length, width, height, outer_r)`
   - `module chamfered_cube(x, y, z, side, chamfer_x=true, chamfer_y=true, chamfer_z=true)`
-  - `module rounded_cube(x, y, z, chamfer_rad)`
+  - `module filleted_cube(x, y, z, fillet_rad)`
   - `module hexahedron(corners, convexity=1)`
 - **Rings and Cones**
   - `cylinder_outer(h, d=undef, r=undef)`
@@ -116,8 +116,12 @@ Modules:
   - `flat_spring(length, width, height, gap_length, segments)`
   - `rect_circ_spring(in_radius, out_radius, angle, segments, height, thickness)`
 - **Bolt shapes**
+  - These are used for 'cutting out' a hole for a bolt in something else.
   - `countersunk_bolt_hole(shaft_d, shaft_len, head_d, head_len)`
   - `flat_head_bolt_hole(shaft_d, shaft_len, head_d, head_len)`
+  - `hex_head_bolt_hole(shaft_d, shaft_len, head_d, head_len)`
+    - A bolt with a hexagonal head - useful for holding the nut or the bolt
+      still while you screw the other in.
 - **Triangles**
   - `equ_triangle(side)`
     - An equilateral triangle, with one point on the origin and one side along
@@ -129,8 +133,11 @@ Modules:
 - **Hexagons**
   - `hexagon(radius)`
     - A 2D hexagon
-  - `hexagon_solid(radius, height)`
-    - A `linear_extrude`d hexagon.
+  - `hexagon_solid(radius=0, height=0, side2side=0)`
+    - A `linear_extrude`d hexagon.  Can be specified by either radius (the
+      length of one side, or the distance from the center to one corner), or
+      the 'side to side' measurement of the distance between two parallel
+      side.
   - `tapered_hexagon(radius1, radius2, height)`
     - A hexagon that goes from radius1 to radius2 as it goes up.
 

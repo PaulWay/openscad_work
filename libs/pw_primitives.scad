@@ -91,16 +91,16 @@ module chamfered_cube(
     }
 }
 
-module rounded_cube(x, y, z, chamfer_rad) {
+module filleted_cube(x, y, z, fillet_rad) {
     // A simple cube with rounded vertical sides but a flat base
     // apparently 'if {}' blocks keep the context of variables, so we can't
-    // use that to change the chamfer_rad.
+    // use that to change the fillet_rad.
     // This has no rounding on the base; rounded_box does.
-    chamfer_rad = (chamfer_rad >= x/2) || (chamfer_rad >= y/2)
-      ? min(x, y)/2 - epsilon : chamfer_rad;
-    c2 = chamfer_rad*2;
-    linear_extrude(z, center=false) translate([chamfer_rad, chamfer_rad, 0])
-      offset(r=chamfer_rad) square([x-c2, y-c2], center=false);
+    fillet_rad = (fillet_rad >= x/2) || (fillet_rad >= y/2)
+      ? min(x, y)/2 - epsilon : fillet_rad;
+    fillet_dia = fillet_rad*2;
+    linear_extrude(z, center=false) translate([fillet_rad, fillet_rad, 0])
+      offset(r=fillet_rad) square([x-fillet_dia, y-fillet_dia], center=false);
 }
 
 module hexahedron(corners, convexity=1) {
@@ -640,6 +640,13 @@ module flat_head_bolt_hole(shaft_d, shaft_len, head_d, head_len) {
     }
 }
 
+module hex_head_bolt_hole(shaft_d, shaft_len, head_side2side, head_len) {
+    union() {
+        cylinder(h=shaft_len+epsilon, d=shaft_d);
+        txl(z=shaft_len) hexagon_solid(height=head_len, side2side=head_side2side);
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // TRIANGLE SHAPES
 ////////////////////////////////////////////////////////////////////////////////
@@ -680,10 +687,15 @@ module hexagon(radius) {
     ]);
 }
 
-module hexagon_solid(radius, height) {
+module hexagon_solid(radius=0, height=0, side2side=0) {
+    assert (height > 0, "Height must be set");
+    echo(radius=radius, side2side=side2side, height=height);
+    assert (!(side2side==0 && radius==0), "Side2side or radius must be set");
+    assert (!(side2side>0 && radius>0), "Only one of side2side or radius can be set");
+    r = (side2side > 0) ? side2side / sqrt(3) : radius;  // sin(60) = sqrt(3)/2;
     // A hexagon centred on the origin, with points on the X-Y plane, extending
     // up into the +Z.  Diameter is from point to point, not flat to flat.
-    linear_extrude(height) hexagon(radius);
+    linear_extrude(height) hexagon(r);
 }
 
 module tapered_hexagon(radius1, radius2, height) {

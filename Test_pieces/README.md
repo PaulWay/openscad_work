@@ -8,6 +8,13 @@ Mainly used when I'm trying out ideas before I put them in my libraries.
 
 Work on angled bends that can attach to standard PVC piping.
 
+**File: `cylinder_from_to.scad`**
+
+Testing being able to create a cylinder from and to two arbitrary XYZ
+locations.  This is useful for forming cylindrical lattices and other
+shapes formed of linked cylinders that are not easily defined in terms
+of their rotations or translations in relation to each-other.
+
 **File: `shredder_blade.scad`**
 
 Tests for constructing a shredder blade in plastic.

@@ -10,6 +10,11 @@ pipe_radius = (pipe_dia)/2;
 join_length = 40;
 overlap_len = 5;
 
+translate([-(80-51)/2-11.5, 30, 0]) conduit_angle_bend(
+    80, 52/2, 45, 2, 30,
+    join_a=true, join_b=true, flare_a=false, flare_b=true
+);
+
 $fa=5;
 //////////////////////////////////////////////////////////////
 // Tests to see that all ends of the conduit_angle_bend are in
@@ -41,7 +46,7 @@ module one_group(flare_a, flare_b, curved_a, curved_b) union() {
         curved_a=curved_a, curved_b=curved_b);
 }
 
-union() {
+* union() {
     one_group(false, false, false, false);
     one_group(true, false, false, false);
     one_group(false, true, false, false);

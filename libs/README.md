@@ -68,7 +68,7 @@ Modules:
 - **Modifiers**
   - `flatten(height)`
     - Take any child object and trim off the bits below the XY plane, and
-      above a plane `height` above the XY plane.  Useful for flattinging
+      above a plane `height` above the XY plane.  Useful for flattening
       round objects onto a plane.
 - **Simple cubic modules**
   - `rounded_box(length, width, height, outer_r)`

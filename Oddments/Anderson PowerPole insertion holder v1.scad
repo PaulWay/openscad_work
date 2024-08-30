@@ -9,7 +9,7 @@ connector_full_hgt = 7.8;  conn_hgt_t = connector_full_hgt + tolerance;
 conn_half_t = conn_hgt_t / 2;
 powerpole_wid = 8.5;  // this is offset on the top and left sides looking down;
 connector_len = 8;  lug_len = 13;  lug_width = 3.35;  powerpole_len = 24.8;
-lug_offset = powerpole_wid - connector_full_hgt;
+lug_offset = powerpole_wid - connector_full_hgt;  lug_w_t = lug_width + tolerance*2;
 lug_body_len = powerpole_len - connector_len;
 
 grip_thick = 2;
@@ -27,11 +27,11 @@ module anderson_powerpole() union() {
           cube([connector_len, conn_low_wid_t, conn_half_t+epsilon]);
     }
     // the lug at the top
-    translate([0, conn_half_t-lug_width/2, conn_hgt_t-epsilon])
-      cube([lug_len, lug_width, lug_offset]);
+    translate([0, conn_half_t-lug_w_t/2, conn_hgt_t-epsilon])
+      cube([lug_len, lug_w_t, lug_offset]);
     // the lug on the left hand side
-    translate([0, conn_hgt_t-epsilon, conn_half_t-lug_width/2])
-      cube([lug_len, lug_offset, lug_width]);
+    translate([0, conn_hgt_t-epsilon, conn_half_t-lug_w_t/2])
+      cube([lug_len, lug_offset, lug_w_t]);
 }
 
 difference() {

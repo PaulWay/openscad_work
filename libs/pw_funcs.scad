@@ -74,10 +74,11 @@ function dovetail_inner(x, y, spread, thick, clear=0.0, leftward=true) =
 ////////////////////////////////////////////////////////////////////////////////
 
 function arith_spiral(start_rad, end_rad, steps, angle=360) = [
+    let (rad_inc = end_rad-start_rad)
     for (i=[0:steps-1])  let (fract = i/(steps-1))
     [
-        (start_rad+(end_rad-start_rad)*fract)*sin(angle*fract),
-        (start_rad+(end_rad-start_rad)*fract)*cos(angle*fract)
+        (start_rad+rad_inc*fract)*sin(angle*fract),
+        (start_rad+rad_inc*fract)*cos(angle*fract)
     ],
 ];
 

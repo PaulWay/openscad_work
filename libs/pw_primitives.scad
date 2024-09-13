@@ -67,7 +67,7 @@ module flatten(height) {
 // SIMPLE CUBE MODULES
 ////////////////////////////////////////////////////////////////////////////////
 
-module rounded_box(length, width, height, outer_r) {
+module rounded_box(length, width, height, outer_r, remove_top_face=true) {
     // A simple solid box with rounded bottom and side edges.
     // Essentially this is a box with spherical corners and cylindrical
     // edges on the outside.  You can then subtract whatever object you want
@@ -75,15 +75,22 @@ module rounded_box(length, width, height, outer_r) {
     // Parameters are: the external length, width and height,
     // the radius of the corners and edges.
     outer_d = outer_r*2;
+    assert(
+        outer_d <= min(length, width, height),
+        "Chamfer radius must be less than half the minimum dimension"
+    );
+    top_height = height - (remove_top_face ? outer_r : outer_d);
     translate([outer_r, outer_r, outer_r]) difference() {
         // outer rounded rectangle
         minkowski() {
-            cube([length-outer_d, width-outer_d, height-outer_r]);
+            cube([length-outer_d, width-outer_d, top_height]);
             sphere(r=outer_r);
         };
-        // top face
-        translate([-outer_r, -outer_r, height-outer_r+epsilon])
-          cube([length+2*outer_r, width+2*outer_r, outer_r]);
+        if (remove_top_face) {
+            // top face
+            translate([-outer_r, -outer_r, height-outer_r+epsilon])
+              cube([length+2*outer_r, width+2*outer_r, outer_r]);
+        }
     }
 }
 
@@ -477,6 +484,11 @@ module rectangular_torus(outer, inner, height, angle=360) {
     rotate_extrude(angle=angle) {
         translate([inner, 0, 0]) square([outer-inner, height]);
     }
+}
+
+module chamfered_rectangular_torus(outer, inner, height, radius, angle=360) {
+    rotate_extrude(angle=angle) translate([inner+radius, radius])
+      offset(r=radius) square([outer-(inner+radius*2), height-radius*2]);
 }
 
 module rectangular_pipe_bend_basic(width, height, thickness, inner_radius, bend_angle) {

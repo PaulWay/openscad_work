@@ -3,14 +3,18 @@ use <../libs/gears.scad>;
 $fn = 50;
 eps = 0.01; ep2 = 0.02;
 
+module centre_and_key(shaft_diam, key_x, key_y, height)
+  linear_extrude(height, convexity=2) union() {
+    circle(d=shaft_diam);
+    translate([-key_x/2, shaft_diam/2, 0]) square([key_x, key_y]);
+}
+
 module centre_roller(roller_diam, shaft_diam, key_x, key_y, axis_off, height) {
     difference() {
         // The actual roller
         translate([0, axis_off, 0]) cylinder(d=roller_diam, h=height);
-        // The centre bearing
-        translate([0, 0, -eps]) cylinder(d=shaft_diam, h=height+ep2);
-        // The key
-        translate([-key_x/2, shaft_diam/2, -eps]) cube([key_x, key_y, height+ep2]);
+        // The centre bearing and key
+        translate([0, 0, -eps]) centre_and_key(shaft_diam, key_x, key_y, height+ep2);
     }
 }
 
@@ -30,10 +34,8 @@ module cutter_roller_v1(roller_diam, shaft_diam, key_x, key_y, axis_off, height,
                 cylinder(d=min_diam, h=height);
             }
         }
-        // The centre bearing
-        translate([0, 0, -eps]) cylinder(d=shaft_diam, h=height+ep2);
-        // The key
-        translate([-key_x/2, shaft_diam/2, -eps]) cube([key_x, key_y, height+ep2]);
+        // The centre bearing and key
+        centre_and_key(shaft_diam, key_x, key_y, height);
     }
 }
 
@@ -55,10 +57,8 @@ module cutter_roller_v2(
                 [0, height]
             ]);
         }
-        // The centre bearing
-        translate([0, 0, -eps]) cylinder(d=shaft_diam, h=height+ep2);
-        // The key
-        translate([-key_x/2, shaft_diam/2, -eps]) cube([key_x, key_y, height+ep2]);
+        // The centre bearing and key
+        translate([0, 0, -eps]) centre_and_key(shaft_diam, key_x, key_y, height+ep2);
     }
 }
 
@@ -74,28 +74,56 @@ module end_block(roller_diam, shaft_diam, height) { difference() {
     }
 }}
 
-roller_diam = 30;
+shaft_separation = 56-24.5;
+cardboard_thick = 3;
 shaft_diam = 14.5;
 key_x = 10.3;
 key_y = 3.3;
-axis_off = 5;
 height = 10;
-
-rotate([0, 0, -$t*360]) cutter_roller_v2(roller_diam, shaft_diam, key_x, key_y, height);
-translate([0, 40, 0]) rotate([0, 0, $t*360]) cutter_roller_v2(roller_diam, shaft_diam, key_x, key_y, height);
-
-// bearing diameter = corner point of key
 x = key_x/2;
 y = key_y+(shaft_diam/2);
+// minimum bearing diameter = corner point of key
 bearing_diam = sqrt(x*x + y*y)*2 + 1;
-//bearing_diam = 25;
+puller_diam = shaft_separation-cardboard_thick/2;
+cutter_diam = shaft_separation+1.5;
+echo(shaft_separation=shaft_separation, bearing_diam=bearing_diam,
+     puller_diam=puller_diam, cutter_diam=cutter_diam);
 
+// demo of fit
+* union() {
+    // row 1
+    translate([0, 0, 0]) rotate([-$t*360, 0, 0]) rotate([0, 90, 0])
+      cutter_roller_v2(cutter_diam, shaft_diam, key_x, key_y, height);
+    translate([0, shaft_separation, 0]) rotate([$t*360, 0, 0]) rotate([0, 90, 0])
+      centre_roller(bearing_diam, shaft_diam, key_x, key_y, 0, height);
+    // row 2
+    translate([height*1, 0, 0]) rotate([-$t*360, 0, 0]) rotate([0, 90, 0])
+      centre_roller(puller_diam, shaft_diam, key_x, key_y, 0, height);
+    translate([height*1, shaft_separation, 0]) rotate([$t*360, 0, 0]) rotate([0, 90, 0])
+      centre_roller(puller_diam, shaft_diam, key_x, key_y, 0, height);
+    // row 3
+    translate([height*2, 0, 0]) rotate([-$t*360, 0, 0]) rotate([0, 90, 0])
+      centre_roller(bearing_diam, shaft_diam, key_x, key_y, 0, height);
+    translate([height*2, shaft_separation, 0]) rotate([$t*360, 0, 0]) rotate([0, 90, 0])
+      cutter_roller_v2(cutter_diam, shaft_diam, key_x, key_y, height);
+}
+
+union() {
+    translate([0, 0, 0])
+      cutter_roller_v2(cutter_diam, shaft_diam, key_x, key_y, height);
+    translate([0, shaft_separation+10, 0])
+      centre_roller(bearing_diam, shaft_diam, key_x, key_y, 0, height);
+    translate([shaft_separation+10, 0, 0])
+      centre_roller(puller_diam, shaft_diam, key_x, key_y, 0, height);
+    translate([shaft_separation+10, shaft_separation+10, 0])
+      centre_roller(puller_diam, shaft_diam, key_x, key_y, 0, height);
+}
 end_block_length = 100;
 end_block_width = 60;
 separation = 3;
 
 teeth = 20;
-tooth_height = roller_diam / teeth + 0.1;  // 30/20=1.5
+// tooth_height = roller_diam / teeth + 0.1;  // 30/20=1.5
 bore = 10;
 
 module this_gear(max_diam, tooth_height, key_rotate=0) {difference() {
@@ -132,7 +160,7 @@ module this_gear(max_diam, tooth_height, key_rotate=0) {difference() {
     );
     // The key
     translate([-key_x/2, shaft_diam/2, -eps]) cube([key_x, key_y, height+ep2]);
-};    
+};
 
 // the centred rollers
 // translate([(roller_diam+separation/2)*1, 0, height*2]) // layout check

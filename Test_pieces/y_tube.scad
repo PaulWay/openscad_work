@@ -4,7 +4,10 @@ module bendy_y(diameter, height, separation) union() {
     // A Y in a tube of inner diameter and thickness, with a total height
     // and the two tubes separation apart at their nearest points.
     // This is basically going to be two 's' bends, starting from the
-    // middle bottom and going up-left and up-right.  The centre of the
+    // middle bottom and going up-left and up-right.
+    // The downside is that, because we can't change the minor diameter of a
+    // toroid, the outlets have to be the same diameter as the inlets.
+    //  The centre of the
     // tube is therefore separation/2 + diameter/2 apart at the top.
     centre_sep = separation/2 + diameter/2;
     // the midpoint of the 's' is the midpoint of the line joining the
@@ -41,47 +44,62 @@ module bendy_y(diameter, height, separation) union() {
 
 module tube_y(diameter, thickness, height, separation) difference() {
     bendy_y(diameter, height, separation);
-    translate([0, -0.01, 0]) bendy_y(diameter-thickness, height+002, separation+thickness);
+    translate([0, -0.01, 0]) bendy_y(diameter-thickness, height+0.02, separation+thickness);
 }
 
 $fn=45;
 //tube_y(60, 4, 100, 20);
-tube_y(56, 3.6, 100, 30);
-translate([0, 5, 0]) rotate([90, 0, 0]) pipe_rt(30, (56+3.6)/2, 3.6/2);
-translate([+(56+30)/2, 95, 0]) rotate([-90, 0, 0]) pipe_rt(30, (56+3.6)/2, 3.6/2);
-translate([-(56+30)/2, 95, 0]) rotate([-90, 0, 0]) pipe_rt(30, (56+3.6)/2, 3.6/2);
-
-module straight_y(single_dia, duple_dia, thickness, height, separation) union() {
-    // because cylinders go up into the Z, this also goes up into the Z.
-    centre_sep = separation/2 + duple_dia/2;
-    outer_rad = separation/2 + duple_dia;
-    cylinder(d=1, h=height);
-    translate([-separation/2, 0, height]) color("green") rotate([0, 90, 0])
-      cylinder(h=separation, d=2);
-    translate([-centre_sep, 0, height]) color("lightgreen") rotate([0, 90, 0])
-      cylinder(h=centre_sep*2, d=1);
-    translate([-centre_sep, 0, height+1]) color("darkred") cylinder(h=1, d=duple_dia);
-    tri_angle = atan2(centre_sep, height);
-    top_offset = duple_dia*sin(tri_angle)/2;
-    tri_dist = sqrt(pow(height-top_offset, 2) + pow(centre_sep, 2));
-    fudge = top_offset/2;
-    // translate([0, 0, -bot_offset]) cylinder(h=bot_offset, d=single_dia);
-    intersection() {
-        rotate([0, -tri_angle, 0]) cylinder(h=tri_dist+0.1, d1=single_dia, d2=duple_dia);
-        translate([-outer_rad, -single_dia/2, 0]) cube([outer_rad, single_dia, height]);
-    };
-    translate([fudge, 0, height])
-      rotate([90, 180, 0]) torus(outer_rad, duple_dia/2, angle=tri_angle);
-    intersection() {
-        rotate([0, +tri_angle, 0]) cylinder(h=tri_dist+0.1, d1=single_dia, d2=duple_dia);
-        translate([0, -single_dia/2, 0]) cube([outer_rad, single_dia, height]);
-    };
-    echo("top_offset:", top_offset);
-    translate([-fudge, 0, height])
-      rotate([90, tri_angle, 0]) torus(outer_rad, duple_dia/2, angle=tri_angle);
+union() {
+    tube_y(56, 3.6, 100, 30);
+    translate([0, 5, 0]) rotate([90, 0, 0]) pipe_rt(30, (56+3.6)/2, 3.6/2);
+    translate([+(56+30)/2, 95, 0]) rotate([-90, 0, 0]) pipe_rt(30, (56+3.6)/2, 3.6/2);
+    translate([-(56+30)/2, 95, 0]) rotate([-90, 0, 0]) pipe_rt(30, (56+3.6)/2, 3.6/2);
 }
 
-* difference() {
-    straight_y(60, 32, 4, 50, 20);
-    // # translate([0, 10, -epsilon]) straight_y(56, 26, 4, 50+epsilo2, 22);
+module cylinder_xyzs(x1, y1, x2, y2, height, r) {
+    // A cylinder, going from [x1, y1, 0] to [x2, y2, height].  The
+    // cylinder is sheared and translated, so its top and bottom
+    // are still parallel to the XY plane.
+    translate([x1, y1, 0]) multmatrix([
+        [1, 0, (x2-x1)/height, 0],
+        [0, 1, (y2-y1)/height, 0],
+        [0, 0, 1, 0]
+    ]) cylinder(h=height, r=r);
+}
+
+module cone_xyzs(x1, y1, x2, y2, height, r1, r2) {
+    // A cylinder, going from [x1, y1, 0] to [x2, y2, height].  The
+    // cylinder is sheared and translated, so its top and bottom
+    // are still parallel to the XY plane.
+    translate([x1, y1, 0]) multmatrix([
+        [1, 0, (x2-x1)/height, 0],
+        [0, 1, (y2-y1)/height, 0],
+        [0, 0, 1, 0]
+    ]) cylinder(h=height, r1=r1, r2=r2);
+}
+
+module straight_y_tube(single_dia, duple_dia, thickness, height, separation) union() {
+    // This makes a 
+    // Because cylinders go up into the Z, this also goes up into the Z.
+    centre_sep = separation/2 + duple_dia/2;
+    single_irad = single_dia/2; single_orad = single_irad+thickness;
+    duple_irad = duple_dia/2; duple_orad = duple_irad+thickness;
+    // Main split using sheared cones
+    difference() {
+        union() {
+            cone_xyzs(0, 0, -centre_sep, 0, height, single_orad, duple_orad);
+            cone_xyzs(0, 0, centre_sep, 0, height, single_orad, duple_orad);
+        }
+        txl(z=-0.01) union() {
+            cone_xyzs(0, 0, -centre_sep, 0, height+epsilo2, single_irad, duple_irad);
+            cone_xyzs(0, 0, centre_sep, 0, height+epsilo2, single_irad, duple_irad);
+        }
+    }
+}
+
+* txl(x=100) union() {
+    txl(z=20) straight_y_tube(60, 42, 2, 100, 20);
+    pipe_rt(20, (62+2)/2, 2);
+    txl(x=-31, z=120) pipe_rt(20, (44+2)/2, 2);
+    txl(x=31, z=120) pipe_rt(20, (44+2)/2, 2);
 }

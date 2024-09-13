@@ -1,4 +1,22 @@
 ////////////////////////////////////////////////////////////////////////////////
+// Knurling maker
+////////////////////////////////////////////////////////////////////////////////
+
+function knurl_points(grooves, inner_r, outer_r, flats=false) = [
+    // Makes a set of grooves in a circle, going between two radii.
+    // Use this in something like:
+    // linear_extrude(100, twist=360, convexity=2) polygon(points=knurl_points(10, 20, 17))
+    // Then to get a set of grooves going the other way, intersect that with a
+    // linear_extrude in the opposote direction.  For a smoother outer surface,
+    // union them together rather than intersection.
+    // if flats=true, the top and bottom are flat rather than v-shape.
+    let (step = 360/(grooves*(flats ? 4 : 2)))
+    for (pt = [0:grooves*(flats ? 4 : 2)]) 
+        let (rad = (flats ? (pt % 4 < 2) : (pt % 2 == 0)) ? inner_r : outer_r)
+        [rad * cos(pt*step), rad * sin(pt*step)]
+];
+
+////////////////////////////////////////////////////////////////////////////////
 // Dovetail joint makers
 ////////////////////////////////////////////////////////////////////////////////
 

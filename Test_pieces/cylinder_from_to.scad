@@ -10,10 +10,10 @@ module cylinder_from_to(from, to, d=undef, r=undef) {
     echo(y_rot=y_rot, z_rot=z_rot);
     assert (d!=undef || r != undef, "Must define one of 'd' or 'r'");
     assert (!(d!=undef && r != undef), "Either define 'd' or 'r', not both");
-    radius = (d == undef) ? d/2 : r;
+    radius = (d != undef) ? d/2 : r;
     translate(from) rotate([0, y_rot, z_rot]) cylinder(r=radius, h=height);
 }
 
 $fn = 20;
-cylinder_from_to([2, 5, -1], [10, 10, 10], d=2);
-translate([10, 10, 10]) sphere(d=2);
+// cylinder_from_to([2, 5, -1], [10, 10, 10], d=2);
+// translate([10, 10, 10]) sphere(d=2);

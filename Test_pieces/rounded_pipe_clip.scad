@@ -44,8 +44,16 @@ $fn=$preview ? 40 : 80;
 
 // testing the actual dimension of the inlet...
 // translate([-5, 6.3, 0]) rounded_pipe_clip(16, 24, 14, 20, false);
-translate([-4.9, 26.9, 0]) rounded_pipe_clip(16, 24, 14, 20, true);
-color("green") translate([0, 20, 0]) cube([1, 14, 1]);
+* translate([-4.9, 26.9, 0]) rounded_pipe_clip(16, 24, 14, 20, true);
+* color("green") translate([0, 20, 0]) cube([1, 14, 1]);
 
-translate([-7.8, 4.35, 0]) rounded_pipe_clip(16, 24, 10, 20, true);
-color("green") translate([1, 0, 0]) cube([1, 10, 1]);
+* translate([-7.8, 4.35, 0]) rounded_pipe_clip(16, 24, 10, 20, true);
+* color("green") translate([1, 0, 0]) cube([1, 10, 1]);
+
+difference() {
+    intersection() {
+        sphere(r=24);
+        cylinder(h=24, d1=24, d2=24*2.8);
+    }
+    translate([0, 0, -0.01]) cylinder(h=21, d=18.3);
+}

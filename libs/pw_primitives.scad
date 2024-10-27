@@ -287,7 +287,9 @@ module half_cylinder(height, radius) {
 
 module cylinder_segment(height, radius, angle=360) {
     // Make an arc of a pipe by sweeping a rectangle through a rotate_extrude.
-    rotate_extrude(angle=angle, convexity=2) {
+    if (angle==360) {
+        cylinder(h=height, r=radius);
+    } else rotate_extrude(angle=angle, convexity=2) {
         square([radius, height]);
     }
 }

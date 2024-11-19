@@ -67,29 +67,84 @@ module flatten(height) {
 // SIMPLE CUBE MODULES
 ////////////////////////////////////////////////////////////////////////////////
 
-module rounded_box(length, width, height, outer_r, remove_top_face=true) {
+module rounded_box(length, width, height, outer_r, remove_top_face=true, method="mink") {
     // A simple solid box with rounded bottom and side edges.
     // Essentially this is a box with spherical corners and cylindrical
     // edges on the outside.  You can then subtract whatever object you want
     // from it to make it hollow if you like.
     // Parameters are: the external length, width and height,
-    // the radius of the corners and edges.
+    // the radius of the corners and edges.  By default the top face is removed, making
+    // it a flat box, but if you want you can set `remove_top_face` to false and it will
+    // be rounded instead.
+    // There's at least two method of making this.  The simpler but possibly more
+    // computationally expensive is minkowski, the possibly a little easier but longer
+    // to express is hull, and at some point we might get to implementing 'union' if
+    // those prove to be causing too many problems.
     outer_d = outer_r*2;
     assert(
         outer_d <= min(length, width, height),
         "Chamfer radius must be less than half the minimum dimension"
     );
+    assert(
+        (method=="mink" || method=="hull" || method == "union"),
+        "Method must be one of 'mink', 'hull' or 'union'"
+    );
     top_height = height - (remove_top_face ? outer_r : outer_d);
-    translate([outer_r, outer_r, outer_r]) difference() {
-        // outer rounded rectangle
-        minkowski() {
-            cube([length-outer_d, width-outer_d, top_height]);
-            sphere(r=outer_r);
-        };
+    if (method == "mink") {
+        difference() {
+            // outer rounded rectangle
+            minkowski() {
+                translate([outer_r, outer_r, outer_r])
+                  cube([length-outer_d, width-outer_d, top_height]);
+                sphere(r=outer_r);
+            };
+            if (remove_top_face) {
+                // top face
+                translate([0, 0, height-epsilon])
+                  cube([length+2*outer_r, width+2*outer_r, outer_r]);
+            }
+        }
+    } else if (method == "hull") hull() {
+        // bottom four cylinders
+        lmout = length - outer_r;  wmout = width - outer_r;
+        cylinder_from_to(
+            [outer_r, outer_r, outer_r], [lmout, outer_r, outer_r], r=outer_r);
+        cylinder_from_to(
+            [outer_r, outer_r, outer_r], [outer_r, wmout, outer_r], r=outer_r);
+        cylinder_from_to(
+            [lmout, outer_r, outer_r], [lmout, wmout, outer_r], r=outer_r);
+        cylinder_from_to(
+            [outer_r, wmout, outer_r], [lmout, wmout, outer_r], r=outer_r);
+        // bottom four corner spheres
+        translate([outer_r, outer_r, outer_r]) sphere(r=outer_r);
+        translate([lmout, outer_r, outer_r]) sphere(r=outer_r);
+        translate([outer_r, wmout, outer_r]) sphere(r=outer_r);
+        translate([lmout, wmout, outer_r]) sphere(r=outer_r);
+        // top - either another set of those or a flat face
         if (remove_top_face) {
-            // top face
-            translate([-outer_r, -outer_r, height-outer_r+epsilon])
-              cube([length+2*outer_r, width+2*outer_r, outer_r]);
+            translate([0, 0, height-1]) linear_extrude(1) union() {
+                translate([0, outer_r]) square([length, width - outer_r*2]);
+                translate([outer_r, 0]) square([length - outer_r*2, width]);
+                translate([outer_r, outer_r]) circle(r=outer_r);
+                translate([outer_r, wmout]) circle(r=outer_r);
+                translate([lmout, outer_r]) circle(r=outer_r);
+                translate([lmout, wmout]) circle(r=outer_r);
+            }
+        } else {
+            hmout = height - outer_r;
+            cylinder_from_to(
+                [outer_r, outer_r, hmout], [lmout, outer_r, hmout], r=outer_r);
+            cylinder_from_to(
+                [outer_r, outer_r, hmout], [outer_r, wmout, hmout], r=outer_r);
+            cylinder_from_to(
+                [lmout, outer_r, hmout], [lmout, wmout, hmout], r=outer_r);
+            cylinder_from_to(
+                [outer_r, wmout, hmout], [lmout, wmout, hmout], r=outer_r);
+            // bottom four corner spheres
+            translate([outer_r, outer_r, hmout]) sphere(r=outer_r);
+            translate([lmout, outer_r, hmout]) sphere(r=outer_r);
+            translate([outer_r, wmout, hmout]) sphere(r=outer_r);
+            translate([lmout, wmout, hmout]) sphere(r=outer_r);
         }
     }
 }
@@ -206,6 +261,21 @@ module circle_mid(d=undef, r=undef) {
     circle(r=radius*fudge);
 }
 
+module cylinder_from_to(from, to, d=undef, r=undef) {
+    height=sqrt((to.x-from.x)^2 + (to.y-from.y)^2 + (to.z-from.z)^2);
+    // z rotation is simply looking down on the XY plane, but Y rotation
+    // has to be relative to the plane parallel to the Z axis that both
+    // from and to rest on, so the 'opposite' distance for the arctan
+    // is the diagonal side distance.
+    diff = to - from;
+    y_rot = atan2(sqrt(diff.x^2 + diff.y^2), diff.z);
+    z_rot = atan2(diff.y, diff.x);
+    assert (d!=undef || r != undef, "Must define one of 'd' or 'r'");
+    assert (!(d!=undef && r != undef), "Either define 'd' or 'r', not both");
+    radius = (d != undef) ? d/2 : r;
+    translate(from) rotate([0, y_rot, z_rot]) cylinder(r=radius, h=height);
+}
+
 module chamfered_cylinder(
     height, d=undef, r=undef, chamfer=0, top_chamfer=true, bot_chamfer=true
 ) {
@@ -221,6 +291,52 @@ module chamfered_cylinder(
         outer_h = height - ((top_chamfer ? chamfer : 0) + bot_raise);
         cylinder(h=height, r=radius-chamfer);
         translate([0, 0, bot_raise]) cylinder(h=outer_h, r=radius);
+    }
+}
+
+module rounded_cylinder(h, d=undef, r=undef, corner_r, mink=false) {
+    // A cylinder, rounded at top and bottom.
+    // We have two ways of doing this - the shorter but more computationally
+    // expensive is minkowski, the longer but somewhat faster is to rotate_extrude
+    // a square rounded on two sides.  They both seem pretty quick though.
+    assert(!(d==undef && r==undef), "Must define at least one of 'd' or 'r'");
+    assert(!(d!=undef && r!=undef), "Cannot define both 'd' and 'r'");
+    radius = (r!=undef) ? r : d/2;
+    assert(corner_r <= radius*2, "Must have a corner radius smaller than the overall radius");
+    assert(corner_r < h, "Must have a corner radius smaller than the height");
+    if (mink) {
+        minkowski() {
+            translate([0, 0, corner_r]) cylinder(h=h-corner_r*2, r=radius-corner_r);
+            sphere(r=corner_r);
+        }
+    } else {
+        rotate_extrude() union() {
+            square([radius-corner_r, h]);
+            translate([0, corner_r]) square([radius, h-corner_r*2]);
+            translate([radius-corner_r, corner_r]) circle(r=corner_r);
+            translate([radius-corner_r, h-corner_r]) circle(r=corner_r);
+        }
+    }
+}
+
+module rounded_cylinder_hole(h, d=undef, r=undef, corner_r, top_r=undef) {
+    // A cylindrical hole with a rounded bottom and lip.
+    assert(!(d==undef && r==undef), "Must define at least one of 'd' or 'r'");
+    assert(!(d!=undef && r!=undef), "Cannot define both 'd' and 'r'");
+    radius = (r!=undef) ? r : d/2;
+    top_r = (top_r!=undef) ? top_r : corner_r;
+    assert(corner_r <= radius*2, "Must have a corner radius smaller than the overall radius");
+    assert(corner_r < h, "Must have a corner radius smaller than the height");
+    rotate_extrude() union() {
+        // the part just below the top lip
+        square([radius-corner_r, h]);
+        translate([0, corner_r]) square([radius, h-corner_r]);
+        translate([radius-corner_r, corner_r]) circle(r=corner_r);
+        // the lip
+        difference() {
+            translate([0, h-top_r]) square([radius+top_r, top_r]);
+            translate([radius+top_r, h-top_r]) circle(r=top_r);
+        }
     }
 }
 

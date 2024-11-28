@@ -35,15 +35,15 @@ module rotate_distribute(number, angle=360, last_fencepost=false) {
     // there is no 'last' fencepost at the ending angle.  rotate_distribute is
     // mostly used when distributing n items evenly around a circle; when the angle
     // is less than 360 degrees you probably want to turn last_fencepost on.
+    let(last_number = number - (last_fencepost ? 1 : 0));
     for(i = [0 : number-1]) {
-        rotate([0, 0, i * angle / (number - (last_fencepost ? 1 : 0))]) children();
+        rotate([0, 0, i * angle / last_number]) children();
     }
 }
 
 
 module linear_distribute(start, step, end, tvec = [1, 0, 0]) {
-    // Distribute children in a for loop, but multiplying the translation
-    // vector `tvec` by the loop value.
+    // Distribute children along the translation vector given.
     for(i = [start : step : end]) {
         translate(tvec*i) children();
     }

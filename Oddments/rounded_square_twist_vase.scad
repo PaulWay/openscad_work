@@ -1,8 +1,12 @@
 include <../libs/pw_primitives.scad>;
 include <../libs/pw_funcs.scad>;
 
+module dbl_round(r) {
+    offset(r) offset(-2*r) offset(r) children();
+}
+
 module twist_vase(
-    base_height, vase_height, corner_rad, twist, wall_thick=4
+    base_height, vase_height, corner_rad, twist, wall_thick=4,
 ) union() {
     translate([0, 0, base_height]) 
       linear_extrude(height = vase_height, twist = twist, slices = vase_height) {
@@ -29,7 +33,7 @@ twist = 45;
 * twist_vase(base_height, vase_height, vase_outer_r, twist)
   square(vase_width, center=true);
 
-* twist_vase(base_height, vase_height, 10, -120)
+* twist_vase(base_height, 150, 10, 180)
   hexagon(40);
 
 // very rounded rectangle
@@ -37,5 +41,8 @@ twist = 45;
   square([10, 50], center=true);
 
 // fairly rounded triangle
-twist_vase(4, 110, 10, 120, wall_thick=3)
-  translate([-25, -(25*cos(60)), 0]) equ_triangle(50);
+* twist_vase(4, 110, 20, 120, wall_thick=3)
+  translate([-(45/2), -((45/2)*cos(60)), 0]) equ_triangle(45);
+
+twist_vase(4, 120, 1, 90, wall_thick=3)
+dbl_round(6) polygon(knurl_points(8, 40, 30));

@@ -35,13 +35,6 @@ module holding_clip_v2(inner_width, outer_width, clip_height, length, waist_heig
     ]);
 }
 
-wheight = 18;
-difference() {
-    holding_clip_v2(10, 12, 20, 30, waist_height=wheight);
-    translate([3, 1, 19]) rotate([0, 0, 90]) linear_extrude(1.1) 
-      text(str("waist ", str(wheight)), size=5.5);
-}
-
 module holding_bracket(
     inner_width, outer_width, clip_height, length, side_thick, base_thick,
     waist_height=undef,
@@ -68,11 +61,18 @@ module holding_bracket(
     ]);
 }
 
-translate([0, -12, 0]) difference() {
+wheight = 18;
+* translate([0, -12, 0]) difference() {
     union() {
         holding_bracket(10, 12, 20, 10, 5, 5, waist_height=wheight);
         translate([-15, 0, 0]) cube([30, 10, 5]);
     }
-    # translate([-14, 2.5, -0.1]) linear_extrude(1, convexity=2) 
+    translate([-14, 2.5, -0.1]) linear_extrude(1, convexity=2) 
+      text(str("waist ", str(wheight)), size=5.5);
+}
+
+* difference() {
+    holding_clip_v2(10, 12, 20, 30, waist_height=wheight);
+    translate([3, 1, 19]) rotate([0, 0, 90]) linear_extrude(1.1) 
       text(str("waist ", str(wheight)), size=5.5);
 }

@@ -26,6 +26,11 @@ that the pipe itself sits higher than the sieve.
 A piece that could be printed in two parts that locked together, such that it
 could sit on the side of a garden bed wall and guide a hose without kinking.
 
+**File: `Hart puzzle.scad`**
+
+A generator for screw-together puzzles as originally made by George Hart at
+https://www.thingiverse.com/thing:186372/ .
+
 **File: `organza_bag_funnel.scad`**
 
 A basic funnel, designed for filling the specific organza bags I use to sell

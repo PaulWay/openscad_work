@@ -51,12 +51,12 @@ $fn=$preview ? 40 : 80;
 // Trialling one form of a 90 degree clip, set up so that minimal support
 // is needed: by rotating and flattening it, only two small places overhang
 // rather than a whole under-edge.
-* flatten(20) txl(z=10) rotate([45, 0, 0]) 
+flatten(20) txl(z=10) rotate([45, 0, 0]) 
 union() {
-    translate([24/2-4/2, 0, -12]) rounded_pipe_clip(16, 24, 14, 24);
+    translate([24/2-4/2, 0, -12]) rounded_pipe_clip(16, 24, 13, 24);
     translate([-24/2+4/2, 0, -12]) rotate([0, 0, 180]) 
       translate([0, 24/2, 24/2]) rotate([90, 0, 0])
-      rounded_pipe_clip(16, 24, 14, 24);
+      rounded_pipe_clip(16, 24, 13, 24);
 }
 // translate([-5/2, 0, 20/2]) rotate([0, 90, 0]) cylinder(h=5, d=16);
 
@@ -69,7 +69,7 @@ union() {
 * color("green") translate([1, 0, 0]) cube([1, 10, 1]);
 
 // A cap for the rod so that mesh can be pulled over it easily.
-difference() {
+* difference() {
     intersection() {
         sphere(r=24);
         cylinder(h=24, d1=24, d2=24*2.8);

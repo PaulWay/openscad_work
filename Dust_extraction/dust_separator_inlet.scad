@@ -45,11 +45,18 @@ cyl_diam = 500; cyl_rad = cyl_diam / 2;
 
 // Circular feed-in tube of OD 160mm going tangentially into the
 // side of a 500mm diameter cylinder.
-* translate([160/2, 0, 160/2]) difference() {
-    rotate([-90, 0, 0]) pipe_rt(250, 160/2, 5/2);
-    translate([500/2+2.5-160/2, 0, -160/2]) cylinder(h=160, d=500);
+translate([160/2, 0, 160/2]) union() {
+    difference() {
+        rotate([-90, 0, 0]) pipe_rt(250, 160/2, 5/2);
+        translate([500/2+2.5-160/2, 0, -160/2]) cylinder(h=160, d=500);
+    }
+    difference() {
+        // (radius, thickness, height, angle)
+        translate([500/2+2.5-160/2, 0, -160/2]) rotate([0, 0, 180-70])
+          pipe_rt_segment(500/2, 5/2, 160, 70);
+        rotate([-90, 0, 0]) cylinder(h=250, d=155);
+    }
 }
-
 // a section of 150mm pipe with angled vanes inside it to spin the
 // airflow.
 * union() {
@@ -94,7 +101,7 @@ cyl_diam = 500; cyl_rad = cyl_diam / 2;
 }
 
 // A rectangular duct resize from 160x120 to 240x80 in 200mm, plus 
-union() {
+* union() {
     translate([-126/2, -166/2, 0]) rectangular_tube(126, 166, 3, 20);
     translate([0, 0, 20]) difference() {
         rectangular_cone(120/2+3, 160/2+6, 240/2+6, 80/2+6, 200);

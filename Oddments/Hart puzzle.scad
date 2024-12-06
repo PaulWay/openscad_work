@@ -15,20 +15,26 @@ function line(from, to, steps=undef, stepwidth=undef) = [
 ];
 
 module divsquare(vec, stepwidth=1) polygon([
+    //each line([0, 0], [0, vec.y], stepwidth=stepwidth),
+    //each line([0, vec.y], [vec.x, vec.y], stepwidth=stepwidth),
+    //each line([vec.x, vec.y], [vec.x, 0], stepwidth=stepwidth),
+    //each line([vec.x, 0], [0, 0], stepwidth=stepwidth)
     each line([0, 0], [0, vec.y], stepwidth=stepwidth),
-    each line([0, vec.y], [vec.x, vec.y], stepwidth=stepwidth),
-    each line([vec.x, vec.y], [vec.x, 0], stepwidth=stepwidth),
-    each line([vec.x, 0], [0, 0], stepwidth=stepwidth)
+    [vec.x, vec.y], [vec.x, 0]
 ]);
 
 //translate([0, 0, 35]) rotate([45, 90, 0]) 
 // rotate([40.9, 0, 0]) 
+full_twists = 1; half_twists = 1;
+twist = full_twists * 360 + half_twists * 180;
 difference() {
     // translate([-35, 0, 0.01]) rotate([45, 0, 0]) cube([70, 70, 70]);
     // translate([-50, 0, 0]) tetrahedron(100);
-    translate([0, 50, 50*sin(60)]) rotate([90, 0, 0]) octahedron(100); // txl 66.2 rot 49.114
-    linear_extrude(100, convexity=6, twist=360*1+180*1, slices=200)
-      translate([0, -60, 0]) divsquare([60, 120]);
+    // translate([0, -50, 0]) rotate([0, 0, 90]) 
+    translate([-50, 0, 0]) 
+    octahedron_s(100);
+    # linear_extrude(100, convexity=6, twist=-twist, slices=200)
+      translate([0, -60, 0]) divsquare([70, 120]);
 }
 
 module tetrahedron(sidelen) {
@@ -41,7 +47,7 @@ module tetrahedron(sidelen) {
     );
 }
 
-module octahedron(sidelen) {
+module octahedron_h(height) {
     halflen = sidelen / 2;
     othlen = (sidelen * sin(60)) / 2;
     echo(halflen=halflen, othlen);
@@ -51,6 +57,22 @@ module octahedron(sidelen) {
             [-othlen, -othlen, halflen], [-othlen, +othlen, halflen],
             [+othlen, +othlen, halflen], [+othlen, -othlen, halflen],
             [0, 0, sidelen]
+        ], [
+            [0, 2, 1], [0, 3, 2], [0, 4, 3], [0, 1, 4],
+            [5, 1, 2], [5, 2, 3], [5, 3, 4], [5, 4, 1],
+        ]
+    );
+}
+
+module octahedron_s(sidelen) {
+    halflen = sidelen / 2;
+    hheight = sidelen * sin(45);
+    polyhedron(
+        [
+            [halflen, -hheight, halflen],
+            [0, 0, 0], [sidelen, 0, 0],
+            [sidelen, 0, sidelen], [0, 0, sidelen],
+            [halflen, +hheight, halflen]
         ], [
             [0, 2, 1], [0, 3, 2], [0, 4, 3], [0, 1, 4],
             [5, 1, 2], [5, 2, 3], [5, 3, 4], [5, 4, 1],

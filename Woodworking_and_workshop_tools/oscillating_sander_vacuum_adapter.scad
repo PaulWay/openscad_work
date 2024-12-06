@@ -19,8 +19,8 @@ t1=r2-r1;   // Thickness of wall
 br=2.5;     // Locking ball radius
 ba=15;      // Locking ball channel angle
 // Hose attachment diameters and radii
-dhi=34; rhi=dhi/2; 
-dho=38; rho=dho/2;
+hose_inner_d=34; hose_inner_r=hose_inner_d/2; 
+hose_outer_d=38; hose_outer_r=hose_outer_d/2;
 spike_thick=1;  // Extra protrusion of 'spike' holding hose in place.
 halen=30;
 // Middle measurements
@@ -28,11 +28,12 @@ midlen=30;
 
 $fn=64;
 // AEG fitting
-module aeg_hose_fitting_fitting() {
+module aeg_hose_fitting() {
     translate([0, 0, halen+midlen]) union() {
-        pipe_oi(l5, r2+t1, r2);
+        pipe_rt(l5, r2, t1);
         // pipe_oi(3, r4, r2+t1);
         difference() {
+            //height, o_radius, i_radius
             pipe_oi(l4, r6, r4);
             // +x side
             translate([0, 0, l2]) rotate([0, 0, 0]) union() {
@@ -51,11 +52,18 @@ module aeg_hose_fitting_fitting() {
         }
     }
     // Hose fitting
-    hollow_cone_oi(halen/2, rho, rho+spike_thick, rhi, rhi);
-    translate([0, 0, halen/2]) pipe_oi(halen/2, rho, rhi);
+    // height, o_bot_radius, i_bot_radius, o_top_radius, i_top_radius,
+    hollow_cone_oi(
+        halen/2, hose_outer_r, hose_inner_r-spike_thick, hose_outer_r, hose_inner_r
+    );
+    translate([0, 0, halen/2]) pipe_oi(halen/2, hose_outer_r, hose_inner_r);
     // Middle
-    translate([0, 0, halen]) hollow_cone_oi(midlen, rho, r6, rhi, r2);
+    translate([0, 0, halen]) hollow_cone_oi(
+        midlen, hose_outer_r, hose_inner_r, r6, r2
+    );
 }
+
+aeg_hose_fitting();
 
 module shopvac_silicone_hose_fitting() {
     translate([0, 0, 60]) hollow_cone_oi(30, 57, 56.5, 50, 54);
@@ -63,4 +71,4 @@ module shopvac_silicone_hose_fitting() {
     translate([0, 0, 0]) hollow_cone_oi(30, 49, 53, 46, 44);
 }
 
-shopvac_silicone_hose_fitting();
+// shopvac_silicone_hose_fitting();

@@ -1,4 +1,22 @@
 ////////////////////////////////////////////////////////////////////////////////
+// Parabolas
+////////////////////////////////////////////////////////////////////////////////
+
+function pos_parabola(max_x, a=1, b=0, c=0, constant_x=true) = [
+    // calculate a positive parabola from x=0 to x=max_x, of the formula
+    // a*x^2 + b*x + c.
+    if(constant_x) {
+        for(x=[0:max_x]) [x, a*x^2 + b*x + c]
+    } else {
+        // (xn-x)^2 + (yn-y)^2 = 1
+        // (xn-x)^2 + ((a*xn^2+b^xn+c)-(a*x^2+b^x+c))^2 = 1
+        // (xn-x)^2 + (a*(xn^2-x^2)+b(xn-x))^2=1
+        // Is this the right way?
+        for(x=0; x <= max_x; x)
+    }
+]
+
+////////////////////////////////////////////////////////////////////////////////
 // Knurling maker
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -11,7 +29,7 @@ function knurl_points(grooves, inner_r, outer_r, flats=false) = [
     // union them together rather than intersection.
     // if flats=true, the top and bottom are flat rather than v-shape.
     let (step = 360/(grooves*(flats ? 4 : 2)))
-    for (pt = [0:grooves*(flats ? 4 : 2)]) 
+    for (pt = [0:grooves*(flats ? 4 : 2)])
         let (rad = (flats ? (pt % 4 < 2) : (pt % 2 == 0)) ? inner_r : outer_r)
         [rad * cos(pt*step), rad * sin(pt*step)]
 ];
@@ -111,3 +129,13 @@ function p_arcline(r1, r2, arc_len, steps=0) = [
     )
     for (step=0; step <= steps; step = step+1) [r1+r_frac*step, arc_frac*step]
 ];
+
+////////////////////////////////////////////////////////////////////////////////
+// Point manipulation functions
+////////////////////////////////////////////////////////////////////////////////
+
+function invert(points, x=false, y=false, z=false) = [
+    let(xfac = (x ? -1 : 1), yfac = (y ? -1 : 1), zfac = (z ? -1 : 1))
+    for(point in points) [point.x*xfac, point.y*yfac, point.z*zfac]
+]
+

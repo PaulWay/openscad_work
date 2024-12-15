@@ -25,16 +25,22 @@ module divsquare(vec, stepwidth=1) polygon([
 
 //translate([0, 0, 35]) rotate([45, 90, 0]) 
 // rotate([40.9, 0, 0]) 
-full_twists = 1; half_twists = 1;
+full_twists = 2; half_twists = 0;
 twist = full_twists * 360 + half_twists * 180;
+obj_size = 70;  wall_size = 10;
+assert (wall_size*2 < obj_size, "Wall size needs to be less than object radius");
 difference() {
     // translate([-35, 0, 0.01]) rotate([45, 0, 0]) cube([70, 70, 70]);
     // translate([-50, 0, 0]) tetrahedron(100);
     // translate([0, -50, 0]) rotate([0, 0, 90]) 
-    translate([-50, 0, 0]) 
-    octahedron_s(100);
-    # linear_extrude(100, convexity=6, twist=-twist, slices=200)
-      translate([0, -60, 0]) divsquare([70, 120]);
+    translate([-obj_size/2, 0, 0]) difference() {
+        octahedron_s(obj_size);
+        if (wall_size > 0) {
+            translate([wall_size, 0, wall_size]) octahedron_s(obj_size-wall_size*2);
+        }
+    }
+    linear_extrude(obj_size, convexity=6, twist=-twist, slices=obj_size)
+      translate([0, -60, 0]) divsquare([70, obj_size*2]);
 }
 
 module tetrahedron(sidelen) {

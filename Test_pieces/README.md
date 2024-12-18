@@ -21,6 +21,10 @@ The ideas for a utility library for putting decorative patterns on the outside
 of objects, or for inscribing them into objects.  Make your objects look
 nicer and distinctive!
 
+**File: `pulley.scad`**
+
+Ideas for creating pulleys and blocks.
+
 **File: `shredder_blade.scad`**
 
 Tests for constructing a shredder blade in plastic.

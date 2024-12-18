@@ -31,6 +31,11 @@ could sit on the side of a garden bed wall and guide a hose without kinking.
 A generator for screw-together puzzles as originally made by George Hart at
 https://www.thingiverse.com/thing:186372/ .
 
+**File: `jeannette_flask_top.scad`**
+
+The top of a drinking bottle that I made for a friend to replace her broken
+bottle top.
+
 **File: `organza_bag_funnel.scad`**
 
 A basic funnel, designed for filling the specific organza bags I use to sell
@@ -69,6 +74,10 @@ that no-one else can tow the trailer.
 **File: `trevor table foot v1.0.scad`**
 
 A replacement for a table foot for a friend.
+
+**File: `twisting_cone_v1.scad`**
+
+One of those fidget toy cones with a stellated insert that twists together.
 
 **File: `urban_500_mount.scad`**
 

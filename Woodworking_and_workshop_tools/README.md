@@ -22,6 +22,13 @@ designed to allow customisation for other belt and chuck sizes.
 
 A basic block to store the masonry drills I have.
 
+**File: `lathe_extractor_fan_v1.0.scad`**
+
+An idea for a fan that sits on the head of the VL240.  The enclosure uses
+magnets to grip onto the head stock, and the blade assembly sits on the drive
+shaft.  The blades are radial so they work in either direction, although at
+this point the outlet probably only works best for forward.
+
 **File: `oscillating_sander_vacuum_adapter.scad`**
 
 An adapter that fits on the side of the AEG oscillating power sander and

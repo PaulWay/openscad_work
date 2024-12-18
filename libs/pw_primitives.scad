@@ -82,7 +82,7 @@ module rounded_box(length, width, height, outer_r, remove_top_face=true, method=
     // those prove to be causing too many problems.
     outer_d = outer_r*2;
     assert(
-        outer_d <= min(length, width, height),
+        outer_r <= min(length, width, height),
         "Chamfer radius must be less than half the minimum dimension"
     );
     assert(

@@ -1,12 +1,5 @@
+include <libs/pw_funcs.scad>;
 include <libs/pw_primitives.scad>;
-
-function arith_spiral(start_rad, end_rad, steps, angle=360) = [
-    for (i=[0:steps-1])  let (fract = i/(steps-1))
-    [
-        (start_rad+(end_rad-start_rad)*fract)*sin(angle*fract),
-        (start_rad+(end_rad-start_rad)*fract)*cos(angle*fract)
-    ],
-];
 
 $fn=45;
 module flared_ring(outer_r, inner_r, thickness, angle=360) {

@@ -34,6 +34,12 @@ this point the outlet probably only works best for forward.
 An adapter that fits on the side of the AEG oscillating power sander and
 directly connects to a vacuum hose for a workshop vacuum cleaner.
 
+**File: `pipe_clip.scad`**
+
+A clip that a pipe or cylindrical object can be pushed onto to hold it in
+place, and a two-part pipe clamp for when you really need to hold onto a
+pipe.
+
 **File: `trend_airshield_battery_pack.scad`**
 
 Still early experiments on making a replacement for the Trend AirShield Pro

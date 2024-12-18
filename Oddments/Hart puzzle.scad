@@ -1,3 +1,6 @@
+include <../libs/pw_funcs.scad>;
+include <../libs/pw_primitives.scad>;
+
 function fn() = (
     $fn>0 ? ($fn>=3?$fn:3) : ceil(max(min(360/$fa,$fs),5))
 );
@@ -14,34 +17,25 @@ function line(from, to, steps=undef, stepwidth=undef) = [
         [from.x + inc.x*step + wiggle(step), from.y + inc.y*step + wiggle(step)]
 ];
 
-module divsquare(vec, stepwidth=1) polygon([
-    //each line([0, 0], [0, vec.y], stepwidth=stepwidth),
-    //each line([0, vec.y], [vec.x, vec.y], stepwidth=stepwidth),
-    //each line([vec.x, vec.y], [vec.x, 0], stepwidth=stepwidth),
-    //each line([vec.x, 0], [0, 0], stepwidth=stepwidth)
+function arc(r, from_a=-90, to_a=+90) = [
+    // warning: always increments, i.e. goes anti-clockwise
+    for(ang=[from_a:fn():to_a]) [r*cos(ang), r*sin(ang)]
+];
+
+module divsquare(vec, stepwidth=2) polygon([
     each line([0, 0], [0, vec.y], stepwidth=stepwidth),
     [vec.x, vec.y], [vec.x, 0]
 ]);
 
-//translate([0, 0, 35]) rotate([45, 90, 0]) 
-// rotate([40.9, 0, 0]) 
-full_twists = 2; half_twists = 0;
-twist = full_twists * 360 + half_twists * 180;
-obj_size = 70;  wall_size = 10;
-assert (wall_size*2 < obj_size, "Wall size needs to be less than object radius");
-difference() {
-    // translate([-35, 0, 0.01]) rotate([45, 0, 0]) cube([70, 70, 70]);
-    // translate([-50, 0, 0]) tetrahedron(100);
-    // translate([0, -50, 0]) rotate([0, 0, 90]) 
-    translate([-obj_size/2, 0, 0]) difference() {
-        octahedron_s(obj_size);
-        if (wall_size > 0) {
-            translate([wall_size, 0, wall_size]) octahedron_s(obj_size-wall_size*2);
-        }
-    }
-    linear_extrude(obj_size, convexity=6, twist=-twist, slices=obj_size)
-      translate([0, -60, 0]) divsquare([70, obj_size*2]);
-}
+module halfsquare(r, stepwidth=2) polygon([
+    each line([0, -r], [0, +r], stepwidth=stepwidth),
+    [r, +r], [r, -r]
+]);
+
+module halfcirc(r, stepwidth=2) polygon([
+    each line([0, +r], [0, -r], stepwidth=stepwidth),
+    each arc(r)
+]);
 
 module tetrahedron(sidelen) {
     height = sidelen*sin(60);
@@ -53,22 +47,39 @@ module tetrahedron(sidelen) {
     );
 }
 
-module octahedron_h(height) {
-    halflen = sidelen / 2;
-    othlen = (sidelen * sin(60)) / 2;
-    echo(halflen=halflen, othlen);
+module r_tetrahedron(sidelen, r) {
+    // Like a tetrahedron but using a hull to get rounded corners.
+    height = sidelen*sin(60);
+    width = sidelen/2;
+    hull() {
+        translate([0, 0, 0]) sphere(r);
+        translate([sidelen, 0, 0]) sphere(r);
+        translate([width, -width, height]) sphere(r);
+        translate([width, +width, height]) sphere(r);
+    }
+}
+
+module octahedron(height) {
+    // An octahedron of given height centred on the origin.  This means
+    // that all points are exactly half the height from the origin.
+    // The distance from tip to opposite tip is `height`, sides are
+    // sqrt(2)*height long.
+    hheight = height / 2;
     polyhedron(
         [
-            [0, 0, 0],
-            [-othlen, -othlen, halflen], [-othlen, +othlen, halflen],
-            [+othlen, +othlen, halflen], [+othlen, -othlen, halflen],
-            [0, 0, sidelen]
+            [0, 0, -hheight],
+            [-hheight, 0, 0], [0, +hheight, 0],
+            [+hheight, 0, 0], [0, -hheight, 0],
+            [0, 0, +hheight]
         ], [
             [0, 2, 1], [0, 3, 2], [0, 4, 3], [0, 1, 4],
             [5, 1, 2], [5, 2, 3], [5, 3, 4], [5, 4, 1],
         ]
     );
 }
+
+* rotate([45, 0, 0]) translate([0, 0, 50]) 
+octahedron(100);
 
 module octahedron_s(sidelen) {
     halflen = sidelen / 2;
@@ -84,4 +95,83 @@ module octahedron_s(sidelen) {
             [5, 1, 2], [5, 2, 3], [5, 3, 4], [5, 4, 1],
         ]
     );
+}
+
+module r_octahedron_s(sidelen, r) {
+    // A rounded octahedron of a given side length, with the bottom edge
+    // being on the X axis from the origin to +sidelen and the 'top' edge
+    // being +sidelen in Z above that.  Each side forms an equilateral
+    // triangle, and the 'side' points are half the sidelen along X and Z.
+    // The 'height' is derived from the triangle from the origin to +X+Z,
+    // which is base length sidelen*sqrt(2); half of this forms the base
+    // of a 45 degree right-angled triangle of height side
+    sr = sidelen - r;
+    hs = sidelen/2; y = hs*sqrt(2);
+    hull() {
+        translate([r, 0, r]) sphere(r);
+        translate([sr, 0, r]) sphere(r);
+        translate([sr, 0, sr]) sphere(r);
+        translate([r, 0, sr]) sphere(r);
+        translate([hs, +y-r, hs]) sphere(r);
+        translate([hs, -y+r, hs]) sphere(r);
+    }
+}
+
+module h_r_octahedron_s(sidelen, r, thick) difference() {
+    assert(sidelen>thick*2, "Side must be bigger than thickness");
+    r_octahedron_s(sidelen, r);
+    translate([thick, 0, thick]) r_octahedron_s(sidelen-thick*2, r);
+}
+
+// rot(x=-45) rot(y=-45) 
+* octahedron_s(100);
+
+//     linear_extrude(100, convexity=6, twist=twist, slices=200)
+//       translate([0, -60, 0]) divsquare([60, 120]);
+// linear_extrude(100, convexity=2, twist=180, slices=100) halfcirc(r=60);
+
+module hart_puzzle(height, twist=360, diam=100, offset=1) difference() {
+    // Create a twist-together puzzle in the style of George Hart's
+    // original at Thingiverse.  We take the children and subtract a
+    // twisted semi-square on the positive X axis, of given diameter
+    // and twist.  Make sure that your object is the same height,
+    // and is no more than diam from the Z axis at any point.  For
+    // best results
+    children();
+    translate([-offset, 0, 0])
+      linear_extrude(height, convexity=6, twist=twist, slices=height)
+      halfsquare(diam);
+}
+
+$fn=$preview ? 40 : 80;
+full_turns = 1; half_turns = 1;
+twist = 360*full_turns + 180*half_turns;
+//difference() {
+    // translate([-35, 0, 0.01]) rotate([45, 0, 0]) cube([70, 70, 70]);
+    // translate([-50, 0, 2]) minkowski() {
+    //     tetrahedron(98);
+    //     sphere(2);
+    // }
+//    sidelen = (100*sqrt(2)/2);
+//    rot(x=45) translate([2-sidelen/2, 2, 2]) minkowski() {
+//        cube(sidelen-4);
+//        $fn=30; sphere(2);
+//    }
+    // txl(x=-50) octahedron_s(100);
+    // txl(x=-50) r_octahedron_s(100, 2);
+* hart_puzzle(100, twist, 100) {
+    translate([-50, -50, 0.01]) cube(99.98);
+}
+
+height=70;  thick=10;  rad=5;
+* hart_puzzle(height, twist, height) {
+    translate([-height/2, 0, 0]) h_r_octahedron_s(height, rad, thick);
+}
+
+//translate([0, 0, 100*$t]) rotate([180*$t, 0, 180*(half_turns+1)]) 
+//rotate([0, 0, 181]) 
+* translate([0, 0, 100*$t]) rotate([0, 0, -twist*$t+180])
+color("blue") hart_puzzle(100, twist, 100) {
+    // txl(x=-50) r_octahedron_s(100, 2);
+    translate([-50, -50, 0.01]) cube(99.98);
 }

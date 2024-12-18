@@ -2,19 +2,19 @@
 // Parabolas
 ////////////////////////////////////////////////////////////////////////////////
 
-function pos_parabola(max_x, a=1, b=0, c=0, constant_x=true) = [
+function pos_parabola(max_x, a=1, b=0, c=0) = [
     // calculate a positive parabola from x=0 to x=max_x, of the formula
     // a*x^2 + b*x + c.
-    if(constant_x) {
-        for(x=[0:max_x]) [x, a*x^2 + b*x + c]
-    } else {
+    for(x=[0:max_x]) [x, a*x^2 + b*x + c]
+];
+    // calculating points via constant length steps, not constant x:
+    //} else {
         // (xn-x)^2 + (yn-y)^2 = 1
         // (xn-x)^2 + ((a*xn^2+b^xn+c)-(a*x^2+b^x+c))^2 = 1
         // (xn-x)^2 + (a*(xn^2-x^2)+b(xn-x))^2=1
         // Is this the right way?
-        for(x=0; x <= max_x; x)
-    }
-]
+        // for(x=0; x <= max_x; x)
+    //}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Knurling maker
@@ -138,6 +138,5 @@ function p_arcline(r1, r2, arc_len, steps=0) = [
 
 function invert(points, x=false, y=false, z=false) = [
     let(xfac = (x ? -1 : 1), yfac = (y ? -1 : 1), zfac = (z ? -1 : 1))
-    for(point in points) [point.x*xfac, point.y*yfac, point.z*zfac]
-]
-
+    for(point = points) [point.x*xfac, point.y*yfac, point.z*zfac]
+];

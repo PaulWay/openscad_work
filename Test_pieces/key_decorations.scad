@@ -44,4 +44,9 @@ module key_3(size, thick, height=undef) union() {
     translate([s1, s0, 0]) cube([s3, thick, hgt]);
 }
 
+module opposed_key_parts(level, left, right, thick, space) {
+    // just the two opposite parts of a key.
+    translate([left, s0, 0]) cube([thick, s4, hgt]);    
+}
+
 translate([40, 0, 0]) key_3(10, 1, 2);

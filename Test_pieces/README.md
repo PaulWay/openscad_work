@@ -21,11 +21,15 @@ locations.  This is useful for forming cylindrical lattices and other
 shapes formed of linked cylinders that are not easily defined in terms
 of their rotations or translations in relation to each-other.
 
-**File: `decorative_arcs.scad**`
+**File: `decorative_arcs.scad`**
 
 The ideas for a utility library for putting decorative patterns on the outside
 of objects, or for inscribing them into objects.  Make your objects look
 nicer and distinctive!
+
+**File: `key_decoration.scad`**
+
+First experiments with procedural generation of a greek key/maze decoration.
 
 **File: `pulley.scad`**
 

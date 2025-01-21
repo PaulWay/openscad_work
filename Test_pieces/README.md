@@ -3,10 +3,16 @@ Test pieces
 
 Mainly used when I'm trying out ideas before I put them in my libraries.
 
+**File: `arch_inner.scad`**
+
+A module to produce a 2D 'gothic' curved arch given a height and width; used
+for linear extrusion.
+
 **File: `conduit_angle_bend.scad`**
 **File: `conduit_angle_bend_toroidal.scad`**
 
-Work on angled bends that can attach to standard PVC piping.
+Work on angled bends that can attach to standard PVC piping.  Now basically
+uses the `conduit_angle_bend` module from `libs/pw_primitives.scad`.
 
 **File: `cylinder_from_to.scad`**
 

@@ -1,4 +1,5 @@
 module arch_inner(width, height) {
+    // Produces the 'underside' of a circular arch as a 2D shape to be extruded.
     assert(height >= width/2, "Can't intersect circles with height < width/2");
     hwidth = width/2;
     // half the angle of the triangle from one base, to the peak, to the
@@ -19,4 +20,4 @@ module arch_inner(width, height) {
 }
 
 $fn=50;
-linear_extrude(10) arch_inner(10, 8.66);
+linear_extrude(10) arch_inner(10, 9);

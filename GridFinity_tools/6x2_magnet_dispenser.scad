@@ -41,7 +41,9 @@ module pegs(x, y, r, h) {
 // body - base
 union() {
     difference() {
-        chamfered_cube(body_wid, body_len, body_thick, body_chamfer, chamfer_y=false);
+        chamfered_cube(
+            body_wid, body_len, body_thick, body_chamfer,
+            chamfer_y=false, center=false);
         // The slider channel
         translate([body_x_wall, -eps, slider_z_offset]) 
           cube([slider_wid+tolerance, body_len+eps*2, slider_thick+tolerance*2]);
@@ -59,12 +61,14 @@ union() {
 }
 
 // the body - upper
-translate([-30, 0, 0]) difference() {
+* translate([-30, 0, 0]) difference() {
     // the base and outer tube
     translate([0, 0, -(slider_z_offset+slider_thick+tolerance*2)]) union() {
         translate([body_wid/2, tube_y_offset+switcher_wid/2, 0]) 
           cylinder(h=tube_thick, d=tube_outer_dia);
-        chamfered_cube(body_wid, body_len, body_thick, body_chamfer, chamfer_y=false);
+        chamfered_cube(
+            body_wid, body_len, body_thick, body_chamfer,
+            chamfer_y=false, center=false);
     }
     // Everything below the upper
     translate([-eps, -eps, -body_thick]) 
@@ -80,7 +84,7 @@ translate([-30, 0, 0]) difference() {
 // reversible magnet holder - slide into the side, pull out to flip upside down
 // translate([switcher_x_offset, tube_y_offset+switcher_wid+tolerance, body_z_wall]) 
 //   rotate([0, 0, -90]) 
-translate([-50, 0, 0]) difference() {
+* translate([-50, 0, 0]) difference() {
     // the slide and N
     union() {
         cube([switcher_wid, switcher_len, switcher_thick]);
@@ -103,7 +107,7 @@ translate([-50, 0, 0]) difference() {
 }
 
 // the slider
-translate([30, 0, 0]) difference() {
+* translate([30, 0, 0]) difference() {
     cube([slider_wid, slider_len, slider_thick]);
     // the magnet hole
     translate([slider_wid/2, slider_hole_offset+magnet_dia/2, magnet_thick]) 

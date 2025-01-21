@@ -82,6 +82,8 @@ module octahedron(height) {
 octahedron(100);
 
 module octahedron_s(sidelen) {
+    // An octahedron defined by its side length.  Its height is
+    // sidelen/sqrt(2).
     halflen = sidelen / 2;
     hheight = sidelen * sin(45);
     polyhedron(
@@ -104,14 +106,21 @@ module r_octahedron_s(sidelen, r) {
     // triangle, and the 'side' points are half the sidelen along X and Z.
     // The 'height' is derived from the triangle from the origin to +X+Z,
     // which is base length sidelen*sqrt(2); half of this forms the base
-    // of a 45 degree right-angled triangle of height side
+    // of a 45 degree right-angled triangle of height side/
+    // The sphere needs to sit a radius 'back' from the edge; so while the
+    // actual rounded edge of the shape doesn't touch the un-rounded edge
+    // of the shape, the rounded shape is entirely within the un-rounded
+    // shape.
+
+    ir = r * sin(60);
     sr = sidelen - r;
     hs = sidelen/2; y = hs*sqrt(2);
+
     hull() {
-        translate([r, 0, r]) sphere(r);
+        translate([ir, 0, r]) sphere(r);
         translate([sr, 0, r]) sphere(r);
         translate([sr, 0, sr]) sphere(r);
-        translate([r, 0, sr]) sphere(r);
+        translate([ir, 0, sr]) sphere(r);
         translate([hs, +y-r, hs]) sphere(r);
         translate([hs, -y+r, hs]) sphere(r);
     }
@@ -164,14 +173,15 @@ twist = 360*full_turns + 180*half_turns;
 }
 
 height=70;  thick=10;  rad=5;
-* hart_puzzle(height, twist, height) {
+hart_puzzle(height, twist, height*1.1) {
     translate([-height/2, 0, 0]) h_r_octahedron_s(height, rad, thick);
 }
 
 //translate([0, 0, 100*$t]) rotate([180*$t, 0, 180*(half_turns+1)]) 
 //rotate([0, 0, 181]) 
-* translate([0, 0, 100*$t]) rotate([0, 0, -twist*$t+180])
-color("blue") hart_puzzle(100, twist, 100) {
+* translate([0, 0, height*$t]) rotate([0, 0, -twist*$t+180]) color("blue")
+hart_puzzle(height, twist, height*1.1) {
     // txl(x=-50) r_octahedron_s(100, 2);
-    translate([-50, -50, 0.01]) cube(99.98);
+    // translate([-50, -50, 0.01]) cube(99.98);
+    translate([-height/2, 0, 0]) h_r_octahedron_s(height, rad, thick);
 }

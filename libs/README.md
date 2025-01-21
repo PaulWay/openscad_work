@@ -70,6 +70,12 @@ Modules:
     - Take any child object and trim off the bits below the XY plane, and
       above a plane `height` above the XY plane.  Useful for flattening
       round objects onto a plane.
+` **Twist generators**
+  - `arith_twist(start_angle, stop_angle, height, steps)`
+    - Produces a series of `linear_extrude`d segments of a child 2D object,
+      extruded with gradually increasing twist angles.  The final object will
+      be `height` high.  The final total twist (should you need to align
+      something with the final position of your object) is echoed.
 - **Simple cubic modules**
   - `rounded_box(length, width, height, outer_r, remove_top_face=true, method="mink")`
     - A box with rounded corners (chamfered), with the top face rounded or flat.
@@ -81,7 +87,17 @@ Modules:
   - `chamfered_cube(x, y, z, side, chamfer_x=true, chamfer_y=true, chamfer_z=true)`
   - `filleted_cube(x, y, z, fillet_rad)`
   - `hexahedron(corners, convexity=1)`
+  - `filleted_hexahedron(x1, y1, x2, y2, height, fillet_rad)`
+    - A six-sided object, with bottom and top parallel to the XY plane
+      (bottom thereon, top `height` away).  Its 'vertical' edges are at
+      positive and negative (x1,y1) at the base and (x2,y2) at top, and these
+      edges are formed by cylinders of radius `fillet_rad`.
 - **Rings and Cones**
+  - function `radius_from_d_or_r(d=undef, r=undef)`
+    - Used in the below functions that take either a `d` or `r` parameter
+      similar to the `circle` and `cylinder` primitives.  This produces a
+      calculated radius that other modules can use, and makes sure that one
+      and only one of the `d` and `r` parameters is given.
   - `cylinder_outer(h, d=undef, r=undef)`
   - `cylinder_mid(h, d=undef, r=undef)`
   - `circle_outer(d=undef, r=undef)`
@@ -109,6 +125,20 @@ Modules:
   - `half_cylinder(height, radius)`
   - `cylinder_segment(height, radius, angle=360)`
   - `pipe_rt_segment(radius, thickness, height, angle)`
+- **Cylinders going places**
+  - `cylinder_from_to(from, to, d, r)`
+    - A cylinder from a source 3D place to a destination 3D place.  This is
+      achieved by moving and then rotating a cylinder into position.
+  - `rounded_cylinder_from_to(from, to, d, r)`
+    - The same thing but with spheres on the ends.  Really easy because this
+      is just a `hull()` operation on two spheres; this may be at the expense
+      of CGAL computation.  Note that the `from` and `to` coordinates are the
+      _centres_ of the spheres, not the tips.
+  - `cylinder_xyzs(x1, y1, x2, y2, height, r)`
+    - A cylinder, going from `[x1, y1, 0]` to `[x2, y2, height]`.  The
+      cylinder is sheared and translated, so its top and bottom are still
+      parallel to the XY plane.  Again, the X and Y coordinates are the
+      _centres_ of the cylinders, not the outside edges.
 - **Toroids and pipe bends**
   - `torus(outer, inner, x_stretch=1, angle=360)`
   - `toroidal_pipe(bend_radius, pipe_i_radius, thickness, angle=360)`

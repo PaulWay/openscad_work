@@ -64,6 +64,29 @@ module flatten(height) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// TWIST GENERATORS
+////////////////////////////////////////////////////////////////////////////////
+
+module arith_twist(start_angle, stop_angle, height, steps) {
+    // A module for sequentially linear_extrude-twisting a child shape
+    // across a range of angles.  It produces an arithmetically
+    // increasing spiral - useful for turbine blades and so forth.
+    // The start and stop angles are the tilt on the initial sections,
+    // not the angle around the circle at which the sections start.
+    // The total angle is start_angle*steps + (stop_angle-start_angle)*(steps-1)*steps)/2
+    stepsm1 = steps-1;
+    step_inc = (stop_angle - start_angle) / stepsm1;
+    z_inc = height / steps;
+    for (step = [0:stepsm1]) {
+        twist = start_angle + step*step_inc;
+        p_twist = start_angle*step + (step_inc*(step-1)*step)/2;
+        translate([0, 0, z_inc*step]) rotate([0, 0, p_twist])
+          linear_extrude(z_inc, twist=-twist) children();
+    }
+    echo("total angle =", start_angle*steps + (stop_angle-start_angle)*(steps-1)/2);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // SIMPLE CUBE MODULES
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -216,6 +239,12 @@ module hexahedron(corners, convexity=1) {
 // RINGS AND CONES
 ////////////////////////////////////////////////////////////////////////////////
 
+function radius_from_d_or_r(d=undef, r=undef) = (
+    assert ((r != undef) || (d != undef), "Must set d for diameter or r for radius")
+    assert (!(d!=undef && r != undef), "Either define 'd' or 'r', not both")
+    (r == undef) ? d/2 : r
+);
+
 /* From the examples at
  * https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/undersized_circular_objects
  * via https://github.com/superjamie/handyscad/blob/master/handyscad.scad
@@ -224,10 +253,10 @@ module hexahedron(corners, convexity=1) {
  * line segments in OpenSCAD.
  *
  */
+
 module cylinder_outer(h, d=undef, r=undef) {
     // entirely encompasses a given cylinder
-    assert ((r != undef) || (d != undef), "Must set d for diameter or r for radius");
-    radius = (r == undef) ? d/2 : r;
+    radius = radius_from_d_or_r(d, r);
     fn = ($fn > 0) ? max($fn, 3) : ceil(max(min(360/$fa,r*2*PI/$fs),5));
     fudge = 1/cos(180/fn);
     cylinder(h=h, r=radius*fudge);
@@ -235,8 +264,7 @@ module cylinder_outer(h, d=undef, r=undef) {
 
 module cylinder_mid(h, d=undef, r=undef) {
     // the mid-point between cylinder and cylinder_outer
-    assert ((r != undef) || (d != undef), "Must set d for diameter or r for radius");
-    radius = (r == undef) ? d/2 : r;
+    radius = radius_from_d_or_r(d, r);
     fn = ($fn > 0) ? max($fn, 3) : ceil(max(min(360/$fa,r*2*PI/$fs),5));
     fudge = (1+1/cos(180/fn))/2;
     cylinder(h=h, r=radius*fudge);
@@ -245,8 +273,7 @@ module cylinder_mid(h, d=undef, r=undef) {
 
 module circle_outer(d=undef, r=undef) {
     // entirely encompasses a given circle
-    assert ((r != undef) || (d != undef), "Must set d for diameter or r for radius");
-    radius = (r == undef) ? d/2 : r;
+    radius = radius_from_d_or_r(d, r);
     fn = ($fn > 0) ? max($fn, 3) : ceil(max(min(360/$fa,r*2*PI/$fs),5));
     fudge = 1/cos(180/fn);
     circle(r=radius*fudge);
@@ -254,8 +281,7 @@ module circle_outer(d=undef, r=undef) {
 
 module circle_mid(d=undef, r=undef) {
     // the mid-point between circle and circle_outer
-    assert ((r != undef) || (d != undef), "Must set d for diameter or r for radius");
-    radius = (r == undef) ? d/2 : r;
+    radius = radius_from_d_or_r(d, r);
     fn = ($fn > 0) ? max($fn, 3) : ceil(max(min(360/$fa,r*2*PI/$fs),5));
     fudge = (1+1/cos(180/fn))/2;
     circle(r=radius*fudge);
@@ -270,9 +296,7 @@ module cylinder_from_to(from, to, d=undef, r=undef) {
     diff = to - from;
     y_rot = atan2(sqrt(diff.x^2 + diff.y^2), diff.z);
     z_rot = atan2(diff.y, diff.x);
-    assert (d!=undef || r != undef, "Must define one of 'd' or 'r'");
-    assert (!(d!=undef && r != undef), "Either define 'd' or 'r', not both");
-    radius = (d != undef) ? d/2 : r;
+    radius = radius_from_d_or_r(d, r);
     translate(from) rotate([0, y_rot, z_rot]) cylinder(r=radius, h=height);
 }
 
@@ -282,8 +306,7 @@ module chamfered_cylinder(
     // A cylinder with a chamfer - or just a cylinder.  The chamfer is
     // the horizontal / vertical distance in from the unchamfered edge,
     // not the diagonal width of the chamfer.
-    assert ((r != undef) || (d != undef), "Must set d for diameter or r for radius");
-    radius = (r == undef) ? d/2 : r;
+    radius = radius_from_d_or_r(d, r);
     if (chamfer == 0 || (!(top_chamfer || bot_chamfer))) {
         cylinder(h=height, r=radius);
     } else hull() {
@@ -299,9 +322,7 @@ module rounded_cylinder(h, d=undef, r=undef, corner_r, mink=false) {
     // We have two ways of doing this - the shorter but more computationally
     // expensive is minkowski, the longer but somewhat faster is to rotate_extrude
     // a square rounded on two sides.  They both seem pretty quick though.
-    assert(!(d==undef && r==undef), "Must define at least one of 'd' or 'r'");
-    assert(!(d!=undef && r!=undef), "Cannot define both 'd' and 'r'");
-    radius = (r!=undef) ? r : d/2;
+    radius = radius_from_d_or_r(d, r);
     assert(corner_r <= radius*2, "Must have a corner radius smaller than the overall radius");
     assert(corner_r < h, "Must have a corner radius smaller than the height");
     if (mink) {
@@ -321,9 +342,7 @@ module rounded_cylinder(h, d=undef, r=undef, corner_r, mink=false) {
 
 module rounded_cylinder_hole(h, d=undef, r=undef, corner_r, top_r=undef) {
     // A cylindrical hole with a rounded bottom and lip.
-    assert(!(d==undef && r==undef), "Must define at least one of 'd' or 'r'");
-    assert(!(d!=undef && r!=undef), "Cannot define both 'd' and 'r'");
-    radius = (r!=undef) ? r : d/2;
+    radius = radius_from_d_or_r(d, r);
     top_r = (top_r!=undef) ? top_r : corner_r;
     assert(corner_r <= radius*2, "Must have a corner radius smaller than the overall radius");
     assert(corner_r < h, "Must have a corner radius smaller than the height");
@@ -414,6 +433,57 @@ module pipe_rt_segment(radius, thickness, height, angle) {
     // Make an arc of a pipe by sweeping a rectangle through a rotate_extrude.
     rotate_extrude(angle=angle, convexity=2) {
         translate([radius, 0, 0]) square([thickness, height]);
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// CYLINDERS GOING PLACES
+////////////////////////////////////////////////////////////////////////////////
+
+module cylinder_from_to(from, to, d=undef, r=undef) {
+    height=sqrt((to.x-from.x)^2 + (to.y-from.y)^2 + (to.z-from.z)^2);
+    // z rotation is simply looking down on the XY plane, but Y rotation
+    // has to be relative to the plane parallel to the Z axis that both
+    // from and to rest on, so the 'adjacent' distance for the arctan
+    // is the 
+    y_rot = atan2(sqrt((to.x-from.x)^2 + (to.y-from.y)^2), to.z-from.z);
+    z_rot = atan2(to.y-from.y, to.x-from.x);
+    echo(y_rot=y_rot, z_rot=z_rot);
+    radius = radius_from_d_or_r(d, r);
+    translate(from) rotate([0, y_rot, z_rot]) cylinder(r=radius, h=height);
+}
+
+module rounded_cylinder_from_to(from, to, d=undef, r=undef) {
+    // MUCH MUCH SIMPLER, maybe at the expense of CGAL computation.
+    radius = radius_from_d_or_r(d, r);
+    hull() {
+        translate(from) sphere(r=radius);
+        translate(to) sphere(r=radius);
+    }
+}
+
+module cylinder_xyzs(x1, y1, x2, y2, height, r) {
+    // A cylinder, going from [x1, y1, 0] to [x2, y2, height].  The
+    // cylinder is sheared and translated, so its top and bottom
+    // are still parallel to the XY plane.
+    translate([x1, y1, 0]) multmatrix([
+        [1, 0, (x2-x1)/height, 0],
+        [0, 1, (y2-y1)/height, 0],
+        [0, 0, 1, 0]
+    ]) cylinder(h=height, r=r);
+}
+
+module filleted_hexahedron(x1, y1, x2, y2, height, fillet_rad) {
+    px1r = x1 - fillet_rad; nx1r = fillet_rad - x1;
+    py1r = y1 - fillet_rad; ny1r = fillet_rad - y1;
+    px2r = x2 - fillet_rad; nx2r = fillet_rad - x2;
+    py2r = y2 - fillet_rad; ny2r = fillet_rad - y2;
+    // The hull around the four cylinders
+    hull() {
+        cylinder_xyzs(px1r, py1r, px2r, py2r, height, fillet_rad);
+        cylinder_xyzs(nx1r, py1r, nx2r, py2r, height, fillet_rad);
+        cylinder_xyzs(px1r, ny1r, px2r, ny2r, height, fillet_rad);
+        cylinder_xyzs(nx1r, ny1r, nx2r, ny2r, height, fillet_rad);
     }
 }
 

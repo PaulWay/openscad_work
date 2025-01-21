@@ -9,11 +9,14 @@ handle_len = 100;  handle_wid = 10;  handle_thick = 5;
 main_angle = 20;  pusher_angle = 10;
 
 join_len = (handle_thick) / tan(main_angle);  join_off = 12;
+handle_ang_len = handle_len - join_len - handle_wid/2;
 
 spring_len = 60;  spring_gap = 2; spring_segments = 10;
 
 outer_dia = 12;  outer_rad = outer_dia/2;
-pusher_dia = 4;  arm_head_dia = 8;
+pusher_dia = 4;  pusher_rad = pusher_dia/2;
+inner_rad = outer_rad - pusher_dia/2;
+arm_head_dia = 8;
 washer_dia = 10;  washer_thick = 1.0;
 washer_offset = magnet_insert_thick + 1;
 support_dia = 5;  support_offset = 8;  support_thick = 10;
@@ -65,7 +68,8 @@ union() {
 }
 
 // the arm
-// sideways for maximum strength on the spring.  The 
+// Sideways for maximum strength on the spring.  The pivot point is on the
+// surface, where the two arms meet - not in the centre of the arms.
 translate([0, 20, handle_wid/2]) rotate([-90, 0, 0]) union() {
     // The disk 
     cylinder(d=handle_wid, h=handle_thick);
@@ -97,23 +101,27 @@ translate([0, 20, handle_wid/2]) rotate([-90, 0, 0]) union() {
         translate([10+join_len, -epsilon, handle_thick/2]) rotate([-90, 0, 0])
           cylinder(h=handle_wid+epsilo2, d=2);
     }
-    // the finger - outer, inner, angle
+    // the finger - torus(outer, inner, angle)
     $fn = 90;
-    translate([handle_len+20, 0, 0]) rotate([90, 0, 180]) 
-      torus(handle_len+pusher_dia/3+20, pusher_dia/2-0.2, angle=main_angle-5);
+    // translate([handle_len+finger_offset, 0, 0]) rotate([90, 0, 180]) 
+    translate([handle_ang_len-pusher_dia/2, 0, 0]) rotate([90, 0, 180])
+      torus(
+//        handle_len+pusher_dia/3+finger_offset, pusher_dia/2-0.2,
+        handle_ang_len, pusher_dia/2-0.2,
+        angle=main_angle
+      );
 }
 
 // the tube and support
 // for the tube plus support, easier to subtract the offset thickness rather than
 // recalculate the angle of the tube.
 translate([0, -20, -(handle_thick-support_start)]) difference() {
+    $fn=90;
     union() {
-        translate([handle_len-(outer_rad-(pusher_dia-tolerance/2)), 0, 0]) rotate([90, 0, 180]) 
-          conduit_angle_bend_straight_join(
-          // bend_radius, pipe_radius, bend_angle, thickness,
-          // join_length, overlap_len, join_a=true, join_b=true, flare_a=true, flare_b=true
-            handle_len, outer_rad, main_angle-pusher_angle, pusher_dia-tolerance/2,
-            0, 0, false, false
+        rotate([90, 0, 180]) translate([-handle_len+inner_rad, 0, 0])
+          toroidal_pipe(
+            handle_len, inner_rad, outer_rad-inner_rad,
+            angle=main_angle-pusher_angle
           );
         translate([support_offset, 0, 0]) 
           cylinder(d=support_dia, h=support_thick);

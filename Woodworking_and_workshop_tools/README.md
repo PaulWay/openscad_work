@@ -47,6 +47,12 @@ v2](https://bazar.preciousplastic.com/machines/shredder/shredder-kits/shredder-m
 to provide an inlet and some different forms of support for the shredder to
 sit on a container.
 
+**File: `quarter_inch_tool_holder.scad`**
+
+A simple 'stubby' tool holder for quarter-inch hex tools.  If you have the
+'gridfinity-rebuilt-openscad' library checked out in the parent directory,
+you can also build a 1x1 GridFinity box for holding this tool holder.
+
 **File: `trend_airshield_battery_pack.scad`**
 
 Still early experiments on making a replacement for the Trend AirShield Pro

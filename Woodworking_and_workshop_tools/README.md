@@ -40,6 +40,13 @@ A clip that a pipe or cylindrical object can be pushed onto to hold it in
 place, and a two-part pipe clamp for when you really need to hold onto a
 pipe.
 
+**File: `Plastic shredder inlet and outlet.scad`**
+
+Fittings to attach to the [Sustainable Design Studios Shredder Mini
+v2](https://bazar.preciousplastic.com/machines/shredder/shredder-kits/shredder-mini-handcranked-shredder/)
+to provide an inlet and some different forms of support for the shredder to
+sit on a container.
+
 **File: `trend_airshield_battery_pack.scad`**
 
 Still early experiments on making a replacement for the Trend AirShield Pro

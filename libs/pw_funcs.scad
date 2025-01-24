@@ -2,11 +2,12 @@
 // Parabolas
 ////////////////////////////////////////////////////////////////////////////////
 
-function pos_parabola(max_x, a=1, b=0, c=0) = [
+function pos_parabola(max_x, min_x=0, a=1, b=0, c=0) = [
     // calculate a positive parabola from x=0 to x=max_x, of the formula
     // a*x^2 + b*x + c.
-    for(x=[0:max_x]) [x, a*x^2 + b*x + c]
+    for(x=[min_x:max_x]) [x, a*x^2 + b*x + c]
 ];
+
     // calculating points via constant length steps, not constant x:
     //} else {
         // (xn-x)^2 + (yn-y)^2 = 1
@@ -78,8 +79,25 @@ function arith_spiral(start_rad, end_rad, steps, angle=360) = [
     let (rad_inc = end_rad-start_rad)
     for (i=[0:steps-1])  let (fract = i/(steps-1))
     [
-        (start_rad+rad_inc*fract)*sin(angle*fract),
-        (start_rad+rad_inc*fract)*cos(angle*fract)
+        (start_rad+rad_inc*fract)*cos(angle*fract),
+        (start_rad+rad_inc*fract)*sin(angle*fract)
+    ],
+];
+
+function geom_spiral(start_rad, end_rad, steps, angle=360) = [
+    // A geometric spiral, starting at `start_rad` away from the
+    // origin along the X axis, and rotating clockwise out to
+    // `end_rad` through `steps` equal-angle steps from zero to
+    // `angle`.
+    let (
+        sm1 = steps-1,
+        rad_diff = end_rad-start_rad+1,
+        pow_frac = rad_diff^(1/sm1)
+    )
+    for (i=[0:sm1])  let (fract = i/sm1)
+    [
+        (start_rad-1+pow_frac^i)*cos(angle*fract),
+        (start_rad-1+pow_frac^i)*sin(angle*fract)
     ],
 ];
 

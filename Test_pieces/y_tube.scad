@@ -49,7 +49,7 @@ module tube_y(diameter, thickness, height, separation) difference() {
 
 $fn=45;
 //tube_y(60, 4, 100, 20);
-union() {
+* union() {
     tube_y(56, 3.6, 100, 30);
     translate([0, 5, 0]) rotate([90, 0, 0]) pipe_rt(30, (56+3.6)/2, 3.6/2);
     translate([+(56+30)/2, 95, 0]) rotate([-90, 0, 0]) pipe_rt(30, (56+3.6)/2, 3.6/2);
@@ -78,9 +78,14 @@ module cone_xyzs(x1, y1, x2, y2, height, r1, r2) {
     ]) cylinder(h=height, r1=r1, r2=r2);
 }
 
-module straight_y_tube(single_dia, duple_dia, thickness, height, separation) union() {
-    // This makes a 
+module straight_y_tube(single_dia, duple_dia_, thickness, height, separation) union() {
+    // This makes a single tube split in two.  You may not care about eddies
+    // and friction, but you do care about the cross-sectional areas of the
+    // inlet and outlet tubes being the same.  If 'duple_dia_' is set to
+    // 'undef', it will be calculated as the diameter with half the area of
+    // the single_dia circle.
     // Because cylinders go up into the Z, this also goes up into the Z.
+    duple_dia = (duple_dia_ != undef) ? duple_dia_ : sqrt(single_dia^2 / 2);
     centre_sep = separation/2 + duple_dia/2;
     single_irad = single_dia/2; single_orad = single_irad+thickness;
     duple_irad = duple_dia/2; duple_orad = duple_irad+thickness;
@@ -97,7 +102,8 @@ module straight_y_tube(single_dia, duple_dia, thickness, height, separation) uni
     }
 }
 
-* txl(x=100) union() {
+//txl(x=100) 
+union() {
     txl(z=20) straight_y_tube(60, 42, 2, 100, 20);
     pipe_rt(20, (62+2)/2, 2);
     txl(x=-31, z=120) pipe_rt(20, (44+2)/2, 2);

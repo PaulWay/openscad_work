@@ -48,5 +48,32 @@ number of 'lobes'.
 
 **File: `y_tube.scad`**
 
-A Y join in a pipe, made out of toroid segments.
+Two 'Y' joins for pipes:
 
+- `tube_y(diameter, thickness, height, separation)`
+  - A Y join in a pipe, made out of toroid segments.  This joins one pipe
+    (on the XY plane) of outer `diameter` with two pipes that are `height`
+    above the XY plane and are `separation` apart (i.e. the minimum distance
+    between the two circles, not distance between centres).  The pipe walls
+    are of `thickness`.
+  - This is for use when you care about reducing the friction and turbulence
+    but where the air velocities will be different.
+- `straight_y_tube(single_dia, duple_dia, thickness, height, separation)`
+  - A Y join in a pipe, made out of sheared cylinders.  Similar to the
+    `tube_y` above, this joins one pipe of outer diameter `single_dia` on the
+    XY plane with two that are of diameter `duple_dia` and `height` above the
+    XY plane, `separation` apart.  The pipe walls are of `thickness`.
+  - This is for where you care about maintaining the air velocity but don't
+    care so much about friction or turbulence.
+
+This also works up the modules:
+
+- `bendy_y(diameter, height, separation)`
+  - The solid version of the `tube_y` module.
+- `cylinder_xyzs(x1, y1, x2, y2, height, r)`
+  - A cylinder of radius `r` whose bottom and top are parallel to the XY
+    plane but sheared to go from `[x1, y1, 0]` to `[x2, y2, height]`.
+  - Recently moved to `libs/pw_primitives.scad`
+- `cone_xyzs(x1, y1, x2, y2, height, r1, r2)`
+  - A cone of bottom radius `r1` and top radius `r2`, sheared to go from
+    `[x1, y1, 0]` to `[x2, y2, height]`.

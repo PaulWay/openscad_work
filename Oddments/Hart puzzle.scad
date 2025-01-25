@@ -47,15 +47,24 @@ module tetrahedron(sidelen) {
     );
 }
 
-module r_tetrahedron(sidelen, r) {
+module r_tetrahedron(sidelen, r, within_tetra=false) {
     // Like a tetrahedron but using a hull to get rounded corners.
-    height = sidelen*sin(60);
-    width = sidelen/2;
+    // With `within_tetra` left as false, the spheres are positioned
+    // so that the edges of the rounded tetrahedron touch the edges
+    // of the original tetrahedron, but the faces will stick out.
+    // With `within_tetra` set to true, the spheres are positioned so
+    // that the faces are entirely within the tetrahedron; this means
+    // the rounded sides don't touch the X axis.
+    z_off = r*(within_tetra ? 2 : 1);
+    wid_off = r*(within_tetra ? 2.3333333 : 1);
+    height = sidelen*sin(60) - z_off;
+    sidelen2 = sidelen / 2;
+    width = sidelen2 - wid_off;
     hull() {
-        translate([0, 0, 0]) sphere(r);
-        translate([sidelen, 0, 0]) sphere(r);
-        translate([width, -width, height]) sphere(r);
-        translate([width, +width, height]) sphere(r);
+        translate([wid_off, 0, z_off]) sphere(r);
+        translate([sidelen-wid_off, 0, z_off]) sphere(r);
+        translate([sidelen2, -width, height]) sphere(r);
+        translate([sidelen2, +width, height]) sphere(r);
     }
 }
 

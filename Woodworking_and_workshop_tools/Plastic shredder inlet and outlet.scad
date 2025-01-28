@@ -92,11 +92,14 @@ module basic_outlet_plate() difference() {
     }
 };
 
-container_height = 150;  container_rim_low_height = 140;
+container_height = 154;  container_rim_low_height = 140;
 container_length = 210;
-container_width = 148;  container_in_width = 130;
-full_support_height = container_height + 2;
-container_top_thick = 10;  container_top_rad = 10;
+container_top_width = 148;  container_in_width = 130;
+container_top_in_width = 133;
+container_bot_width = 117;
+container_lip_wid_2 = (container_top_width - container_top_in_width) / 2;
+container_bot_wid_2 = (container_top_width - container_bot_width) / 2;
+container_top_thick = 11;  container_top_rad = 10;
 
 // top outlet plate - mostly centred coordinates
 module box_loader_outlet_plate() difference() {
@@ -113,15 +116,16 @@ module box_loader_outlet_plate() difference() {
         center=true);
 }
 
+full_support_height = container_height + 2;
 upright_wall_top_thick = 10;
-upright_wall_lip_thick = 15;
-upright_wall_base_thick = 30;
-upright_wall_y_off = (container_width - upright_wall_top_thick) / 2 + 0.01;
+upright_wall_lip_thick = upright_wall_top_thick + container_lip_wid_2;
+upright_wall_base_thick = upright_wall_top_thick + container_bot_wid_2;
+upright_wall_y_off = (container_top_width - upright_wall_top_thick) / 2 + 0.01;
 mortise_length = 80;  mortise_tol = +0.5;
 mortise_neg_length = (container_length - mortise_length) / 2 + mortise_tol;
 mortise_z_off = (container_top_thick/2);
 upright_wall_mortise_h_off = (
-  container_height + container_top_thick - container_top_thick
+  container_height + container_top_thick - upright_wall_top_thick
 );
 plate_bolt_hole_len = 50;
 plate_bolt_nut_hgt = 40;
@@ -129,7 +133,7 @@ plate_bolt_nut_len = 12; plate_bolt_nut_wid = 5;
 plate_bolt_nut_y_off = container_height - plate_bolt_nut_hgt;
 
 // side upright plate - 'height' here is +Y
-module box_loader_side_plate() difference() {
+module box_loader_side_plate(container_length) difference() {
     // side profile, extruded and then moved back to centred X coordinates
     txl(x=container_length/2) 
     rot(y=-90) linear_extrude(container_length, convexity=4) polygon([
@@ -165,6 +169,12 @@ module box_loader_side_plate() difference() {
     };
 }
 
-txl(y=container_width/2 +1) rot(x=90) box_loader_side_plate();
-txl(y=-container_width/2 -1) rot(x=-90) rot(z=180) box_loader_side_plate();
-color("green") txl(z=container_height +1) box_loader_outlet_plate();
+* union() {
+    txl(y=container_width/2 +1) rot(x=90)
+      box_loader_side_plate(container_length);
+    txl(y=-container_width/2 -1) rot(x=-90) rot(z=180)
+      box_loader_side_plate(container_length);
+    color("green") txl(z=container_height +1) box_loader_outlet_plate();
+}
+
+box_loader_side_plate(container_length);

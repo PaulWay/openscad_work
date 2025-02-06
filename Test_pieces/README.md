@@ -27,6 +27,12 @@ The ideas for a utility library for putting decorative patterns on the outside
 of objects, or for inscribing them into objects.  Make your objects look
 nicer and distinctive!
 
+**File: `finger_guard.scad`**
+
+An experimental finger splint for when, just hypothetically, you've injured
+your hand on a table saw and you need a custom rigid brace to fit the
+bandages.
+
 **File: `key_decoration.scad`**
 
 First experiments with procedural generation of a greek key/maze decoration.

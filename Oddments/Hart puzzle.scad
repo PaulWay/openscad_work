@@ -18,8 +18,8 @@ function line(from, to, steps=undef, stepwidth=undef) = [
 ];
 
 function arc(r, from_a=-90, to_a=+90) = [
-    // warning: always increments, i.e. goes anti-clockwise
-    for(ang=[from_a:fn():to_a]) [r*cos(ang), r*sin(ang)]
+    let(dir=(from_a<to_a) ? 1 : -1)
+    for(ang=[from_a:fn()*dir:to_a]) [r*cos(ang), r*sin(ang)]
 ];
 
 module divsquare(vec, stepwidth=2) polygon([
@@ -174,7 +174,8 @@ module r_cube(sidelen, r, within_cube=false) {
 
 module hollow_r_cube(sidelen, r, thick, within_cube=false) difference() {
     r_cube(sidelen, r, within_cube);
-    translate([thick, 0, thick]) r_cube(sidelen-thick*2, r, within_cube);
+    if (thick < sidelen/2) translate([thick, 0, thick])
+      r_cube(sidelen-thick*2, r, within_cube);
 }
 
 //     linear_extrude(100, convexity=6, twist=twist, slices=200)
@@ -241,12 +242,12 @@ module hart_puzzle(height, twist=360, diam=100, offset=0.1) difference() {
 
 // hart_puzzle(50*sqrt(2), 720, diam=50, offset=+0.1)
 // rotate([-45, 0, 90]) translate([0, -25, 0]) hexagon_solid(height=50, side2side=50);
-hart_puzzle(50*sqrt(2), 720, diam=50, offset=+0.1)
+* hart_puzzle(50*sqrt(2), 720, diam=50, offset=+0.1)
 rotate([-45, 0, 90]) translate([0, -25, 0])
   r_hexagon_solid(height=50, side2side=50, r=5, pos=2);
 
 $fn=$preview ? 40 : 80;
-full_turns = 1; half_turns = 1;
+full_turns = 2; half_turns = 0;
 twist = 360*full_turns + 180*half_turns;
 
 * hart_puzzle(100, twist, 100) {
@@ -267,6 +268,6 @@ hart_puzzle(height, twist, height*1.1) {
     translate([-height/2, 0, 0]) h_r_octahedron_s(height, rad, thick);
 }
 
-cu_sidelen = 80;
-hart_puzzle(cu_sidelen * sqrt(2), 360, cu_sidelen*2)
-  translate([-cu_sidelen/2, 0, ]) hollow_r_cube(cu_sidelen, 3, 15);
+cu_sidelen = 50;  cu_thick = 25; // cu_sidelen/5;
+hart_puzzle(cu_sidelen * sqrt(2), -twist, cu_sidelen*2, offset=0.5)
+  translate([-cu_sidelen/2, 0, ]) hollow_r_cube(cu_sidelen, 3, cu_thick);

@@ -1,4 +1,12 @@
 ////////////////////////////////////////////////////////////////////////////////
+// Internal utility functions
+////////////////////////////////////////////////////////////////////////////////
+
+function fn() = (
+    $fn>0 ? ($fn>=3?$fn:3) : ceil(max(min(360/$fa,$fs),5))
+);
+
+////////////////////////////////////////////////////////////////////////////////
 // Parabolas
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -27,7 +35,7 @@ function knurl_points(grooves, inner_r, outer_r, flats=false) = [
     // linear_extrude(100, twist=360, convexity=2)
     //   polygon(points=knurl_points(10, 17, 20));
     // Then to get a set of grooves going the other way, intersect that with a
-    // linear_extrude in the opposote direction.  For a smoother outer surface,
+    // linear_extrude in the opposite direction.  For a smoother outer surface,
     // union them together rather than intersection.
     // if flats=true, the top and bottom are flat rather than v-shape.
     let (step = 360/(grooves*(flats ? 4 : 2)))
@@ -102,6 +110,23 @@ function geom_spiral(start_rad, end_rad, steps, angle=360) = [
 ];
 
 ////////////////////////////////////////////////////////////////////////////////
+// Linear functions
+////////////////////////////////////////////////////////////////////////////////
+
+function line(from, to, steps=undef, stepwidth=undef) = [
+    // two dimensional line, with wiggle.
+    let(
+        diff=to-from,
+        steps_ = (steps==undef ? (
+            stepwidth==undef ? fn() : sqrt(diff.x^2 + diff.y^2) / stepwidth
+        ) : steps),
+        inc=diff/steps_
+    )
+    for(step=[0:steps_])
+        [from.x + inc.x*step + wiggle(step), from.y + inc.y*step + wiggle(step)]
+];
+
+////////////////////////////////////////////////////////////////////////////////
 // Polar functions
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -137,22 +162,58 @@ function p_translate(points, trans_vec) = [
 // anti-clockwise.  If you want them to go clockwise instead, use p_scale()
 // with a negative theta.
 function p_arc(r, arc_len, steps=0) = [
-    let (arc_frac=(steps>0) ? arc_len/steps : ($fn > 0) ? (360/$fn) : $fa)
-    for (theta=0; theta <= arc_len; theta = theta + arc_frac) [r, theta]
+    let (arc_frac=(steps>0) ? arc_len/steps : fn())
+    for (theta=[0:arc_frac:arc_len]) [r, theta]
 ];
 
-function p_arcline(r1, r2, arc_len, steps=0) = [
-    let (
-        steps = (steps>0) ? steps : arc_len/(($fn > 0) ? (360/$fn) : $fa),
-        arc_frac = arc_len/steps,
-        r_frac = (r2-r1)/(steps-1)
-    )
-    for (step=0; step <= steps; step = step+1) [r1+r_frac*step, arc_frac*step]
+// An arc from arbitrary from and to angle - works going both anti-clockwise
+// and clockwise (i.e. arc_to can be LESS than arc_from).
+function p_arc_ft(r, arc_from, arc_to, steps=0) = 
+let (
+    diff = (arc_to-arc_from),
+    arc_frac=diff/( (steps>0) ? steps : (abs(diff)/360)*fn() )
+)
+[
+    for (theta=[arc_from:arc_frac:arc_to]) [r, theta]
+];
+
+function p_arcline(r1, r2, arc_len, steps=0) = 
+let (
+    stepsm1 = ((steps>0) ? steps : arc_len/fn()) - 1,
+    arc_frac = arc_len/stepsm1,
+    r_frac = (r2-r1)/stepsm1,
+)
+[
+    for (step=[0:stepsm1]) [r1+r_frac*step, arc_frac*step]
+];
+
+function p_arcline_ft(r1, r2, arc_from, arc_to, steps=0) = 
+let (
+    stepsm1 = ((steps>0) ? steps : (arc_to-arc_from)/fn()) - 1,
+    arc_frac = (arc_to-arc_from)/stepsm1,
+    r_frac = (r2-r1)/stepsm1,
+)
+[
+    for (step=[0:stepsm1]) [r1+r_frac*step, arc_from+arc_frac*step]
+];
+
+function p_radline(r1, r2, theta, steps=undef, stepwidth=undef) = 
+let(
+    diff=r2-r1,
+    steps_ = (steps==undef ? (
+        stepwidth==undef ? fn() : diff / stepwidth
+    ) : steps),
+    inc=diff/steps_
+)
+[ for(step=[0:steps_])
+    [r1 + inc*step + wiggle(step), theta]
 ];
 
 ////////////////////////////////////////////////////////////////////////////////
 // Point manipulation functions
 ////////////////////////////////////////////////////////////////////////////////
+
+function wiggle(step) = (step%2 == 0) ? 0 : 0.001;
 
 function invert(points, x=false, y=false, z=false) = [
     let(xfac = (x ? -1 : 1), yfac = (y ? -1 : 1), zfac = (z ? -1 : 1))

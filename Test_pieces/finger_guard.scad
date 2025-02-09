@@ -18,18 +18,19 @@ module linear_distribute(start, step, end, tvec = [1, 0, 0]) {
 }
 
 height = 50;
-outer_size_base = 25;
-outer_size_tip = 30;
+inner_size_base = 24;
+inner_size_tip = 21;
 thickness = 2;
 hole_size = 2;
 holes_per_layer = 19;
 split_dia = 3;
 
-inner_size_base = outer_size_base - thickness;
-inner_size_tip= outer_size_tip - thickness;
+outer_size_base = inner_size_base + thickness;
+outer_size_tip= inner_size_tip + thickness;
 outer_tip_rad = outer_size_tip / 2;
-hole_start = outer_size_base/2 - thickness;
-hole_len = (outer_size_tip - outer_size_base) + thickness*2;
+hole_start = min(inner_size_base, inner_size_tip) / 2;
+hole_len = abs(inner_size_base - inner_size_tip) + thickness;
+max_width = max(outer_size_base, outer_size_tip) + 0.02;
 alt_layer_rot_offset = 180 / holes_per_layer;
 layer_step = (hole_size*2);
 
@@ -60,6 +61,7 @@ difference() {
               cube([outer_size_tip, outer_size_tip, outer_tip_rad], center=true);
         };
     }
+    // The holes along the length
     union() {
         // no offset row
         linear_distribute(0, layer_step*2, height, tvec=[0, 0, 1])
@@ -73,6 +75,7 @@ difference() {
           translate([hole_start, 0, layer_step]) rotate([0, 90, 0])
           cylinder(d=hole_size, h=hole_len, $fn=8);
     }
+    // The holes around the spherical tip
     translate([0, 0, 50]) union() {
         rotate_distribute(holes_per_layer/90*dome_layer_1_ang)
           rotate([0, dome_layer_1_ang, 0]) translate([0, 0, hole_start])
@@ -87,11 +90,12 @@ difference() {
           rotate([0, dome_layer_4_ang, 0]) translate([0, 0, hole_start])
           cylinder(d=hole_size, h=hole_len, $fn=8);
     }
+    // The split to allow the sides to be pulled together
     hull() {
         rotate([90, 0, 0])
-          cylinder(d=split_dia, h=outer_size_tip, center=true);
+          cylinder(d=split_dia, h=max_width, center=true);
         translate([0, 0, height]) rotate([90, 0, 0])
-          cylinder(d=split_dia, h=outer_size_tip, center=true);
+          cylinder(d=split_dia, h=max_width, center=true);
     }
 }
 

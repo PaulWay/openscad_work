@@ -909,7 +909,7 @@ module hexagon_solid(radius=0, height=0, side2side=0) {
     r = (side2side > 0) ? side2side / sqrt(3) : radius;  // sin(60) = sqrt(3)/2;
     // A hexagon centred on the origin, with points on the X-Y plane, extending
     // up into the +Z.  Diameter is from point to point, not flat to flat.
-    linear_extrude(height) hexagon(r);
+    linear_extrude(height, convexity=4) hexagon(r);
 }
 
 module tapered_hexagon(radius1, radius2, height) {

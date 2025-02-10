@@ -121,6 +121,8 @@ b_bolt_head_z_off = 5;  b_bolt_head_thick = 10;
 // p2w_bolt_x_off = 85;  // nicer placing but have to reprint
 p2w_bolt_x_off = b_bolt_hole_x;
 p2w_bolt_y_off = (container_top_width + container_top_thick)/2;
+p2w_bolt_head_thick = 5;  p2w_bolt_head_dia = 10;
+p2w_bolt_shaft_thick = (container_top_thick+1) - p2w_bolt_head_thick;
 // top outlet plate - mostly centred coordinates
 module box_loader_outlet_plate() difference() {
     linear_extrude(container_top_thick, convexity=4) difference() {
@@ -145,13 +147,20 @@ module box_loader_outlet_plate() difference() {
         translate([+b_bolt_hole_x, +b_bolt_hole_y]) circle(d=b_bolt_head_dia);
     }
     // holes for bolts to sides
-    translate([0, 0, -0.01]) 
-      linear_extrude(container_top_thick+0.02, convexity=4) union() {
-        // holes to put bolt holes
-        translate([-p2w_bolt_x_off, -p2w_bolt_y_off]) circle(d=b_bolt_hole_dia);
-        translate([-p2w_bolt_x_off, +p2w_bolt_y_off]) circle(d=b_bolt_hole_dia);
-        translate([+p2w_bolt_x_off, -p2w_bolt_y_off]) circle(d=b_bolt_hole_dia);
-        translate([+p2w_bolt_x_off, +p2w_bolt_y_off]) circle(d=b_bolt_hole_dia);
+    union() {
+        // upside down, so shaft and head diameters reversed
+        translate([-p2w_bolt_x_off, -p2w_bolt_y_off, -0.1]) 
+          flat_head_bolt_hole(p2w_bolt_head_dia, p2w_bolt_head_thick,
+            b_bolt_hole_dia, p2w_bolt_shaft_thick);
+        translate([+p2w_bolt_x_off, -p2w_bolt_y_off, -0.1]) 
+          flat_head_bolt_hole(p2w_bolt_head_dia, p2w_bolt_head_thick,
+            b_bolt_hole_dia, p2w_bolt_shaft_thick);
+        translate([-p2w_bolt_x_off, +p2w_bolt_y_off, -0.1]) 
+          flat_head_bolt_hole(p2w_bolt_head_dia, p2w_bolt_head_thick,
+            b_bolt_hole_dia, p2w_bolt_shaft_thick);
+        translate([+p2w_bolt_x_off, +p2w_bolt_y_off, -0.1]) 
+          flat_head_bolt_hole(p2w_bolt_head_dia, p2w_bolt_head_thick,
+            b_bolt_hole_dia, p2w_bolt_shaft_thick);
     }
 }
 

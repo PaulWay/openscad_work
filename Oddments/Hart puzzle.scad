@@ -132,14 +132,55 @@ module h_r_octahedron_s(sidelen, r, thick) difference() {
     translate([thick, 0, thick]) r_octahedron_s(sidelen-thick*2, r);
 }
 
-// rot(x=-45) rot(y=-45) 
-* octahedron_s(100);
+module r_cylinder(diameter, height, r) minkowski() {
+    angle = atan2(diameter, height);
+    z = r*cos(angle);
+    rotate([0, angle, 0]) translate([-diameter/2, 0, z])
+      cylinder(h=height, d=diameter-r*2);
+    sphere(r=r);
+}
 
-//     linear_extrude(100, convexity=6, twist=twist, slices=200)
-//       translate([0, -60, 0]) divsquare([60, 120]);
-// linear_extrude(100, convexity=2, twist=180, slices=100) halfcirc(r=60);
+* r_cylinder(20, 100, 5);
 
-module hart_puzzle(height, twist=360, diam=100, offset=1) difference() {
+module quadroctohedron(side) {
+    // A weird shape joining two squares rotated by 45 degrees
+    h = side/2;
+    v = h * sqrt(2);
+    polyhedron(points=[
+        [-h, -h, -h], [h, -h, -h], [h, h, -h], [-h, h, -h],
+        [0, -v, h], [v, 0, h], [0, v, h], [-v, 0, h]
+    ], faces=[
+        [0, 1, 2, 3],
+        [0, 4, 1], [1, 5, 2], [2, 6, 3], [3, 7, 0],
+        [1, 4, 5], [2, 5, 6], [3, 6, 7], [0, 7, 4],
+        [7, 6, 5, 4],
+    ]);
+}
+
+module r_hexagon_solid(radius_=0, height=0, side2side=0, r=undef, pos=1) {
+    // pos=1 == centres of spheres at corners - complete overlap of hexagon
+    // pos=2 == spheres touch corners of hexagon - faces still outside hexagon
+    // pos=3 == faces touch edges of hexagon - corners completely within
+    assert (height > 0, "Height must be set");
+    assert (r != undef, "Corner r must be set");
+    assert (!(side2side==0 && radius_==0), "Side2side or radius must be set");
+    assert (!(side2side>0 && radius_>0), "Only one of side2side or radius can be set");
+    radius = (side2side > 0) ? side2side / sqrt(3) : radius_;  // sin(60) = sqrt(3)/2;
+    h_mod = (pos==1 ? 0 : pos==2 ? sin(45)*r : r);
+    r_mod = radius - h_mod;
+    hull() rotate_distribute(6) union() {
+        translate([r_mod, 0, h_mod]) sphere(r);
+        translate([r_mod, 0, height-h_mod]) sphere(r);
+    }
+}
+
+// r_hexagon_solid(25, 50, 5, pos=3);
+
+module r_quadroctahedron(side, r) {
+    // A rounded version of the quadroctahedron
+}
+
+module hart_puzzle(height, twist=360, diam=100, offset=0.1) difference() {
     // Create a twist-together puzzle in the style of George Hart's
     // original at Thingiverse.  We take the children and subtract a
     // twisted semi-square on the positive X axis, of given diameter
@@ -147,10 +188,18 @@ module hart_puzzle(height, twist=360, diam=100, offset=1) difference() {
     // and is no more than diam from the Z axis at any point.  For
     // best results
     children();
-    translate([-offset, 0, 0])
-      linear_extrude(height, convexity=6, twist=twist, slices=height)
-      halfsquare(diam);
+    linear_extrude(height, convexity=6, twist=twist, slices=height)
+      translate([-offset, 0, 0]) halfsquare(diam);
 }
+
+//hart_puzzle(50.002, twist=360+45)
+//translate([0, 0, 25.001]) quadroctohedron(50);
+
+// hart_puzzle(50*sqrt(2), 720, diam=50, offset=+0.1)
+// rotate([-45, 0, 90]) translate([0, -25, 0]) hexagon_solid(height=50, side2side=50);
+hart_puzzle(50*sqrt(2), 720, diam=50, offset=+0.1)
+rotate([-45, 0, 90]) translate([0, -25, 0])
+  r_hexagon_solid(height=50, side2side=50, r=5, pos=2);
 
 $fn=$preview ? 40 : 80;
 full_turns = 1; half_turns = 1;
@@ -173,7 +222,7 @@ twist = 360*full_turns + 180*half_turns;
 }
 
 height=70;  thick=10;  rad=5;
-hart_puzzle(height, twist, height*1.1) {
+* hart_puzzle(height, twist, height*1.1) {
     translate([-height/2, 0, 0]) h_r_octahedron_s(height, rad, thick);
 }
 
@@ -184,4 +233,8 @@ hart_puzzle(height, twist, height*1.1) {
     // txl(x=-50) r_octahedron_s(100, 2);
     // translate([-50, -50, 0.01]) cube(99.98);
     translate([-height/2, 0, 0]) h_r_octahedron_s(height, rad, thick);
+}
+
+* hart_puzzle(50/sin(45), twist, 50/sin(45)) {
+    rotate([0, 45, 0]) translate([-25, 0, 0]) cylinder(d=50, h=50);
 }

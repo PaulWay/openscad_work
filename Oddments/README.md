@@ -86,3 +86,8 @@ A mount for the Urban 500 bicycle light.
 **File: `washing bag hook v1.scad`**
 
 A hook for hanging the bag we use to hold our dirty laundry when travelling.
+
+**File: `weights_separator.scad`**
+
+Used for keeping my two 5kg hexagonal-ended weights sitting flat in a
+backpack so I can walk without them digging into my back.

@@ -37,6 +37,11 @@ bandages.
 
 First experiments with procedural generation of a greek key/maze decoration.
 
+**File: `notched_slider.scad`**
+
+Experimenting with a slider that goes over a tab so that the slider locks at
+certain places defined by notches in its underside.
+
 **File: `pulley.scad`**
 
 Ideas for creating pulleys and blocks.

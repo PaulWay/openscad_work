@@ -1,22 +1,9 @@
 include <../libs/pw_funcs.scad>;
 include <../libs/pw_primitives.scad>;
 
-function fn() = (
-    $fn>0 ? ($fn>=3?$fn:3) : ceil(max(min(360/$fa,$fs),5))
-);
-function wiggle(step) = (step%2 == 0) ? 0 : 0.001;
-function line(from, to, steps=undef, stepwidth=undef) = [
-    let(
-        diff=to-from,
-        steps_ = (steps==undef ? (
-            stepwidth==undef ? fn() : sqrt(diff.x^2 + diff.y^2) / stepwidth
-        ) : steps),
-        inc=diff/steps_
-    )
-    for(step=[0:steps_])
-        [from.x + inc.x*step + wiggle(step), from.y + inc.y*step + wiggle(step)]
-];
-
+/****************************************************************************
+**************** Line and square generators for polygons ********************
+****************************************************************************/
 function arc(r, from_a=-90, to_a=+90) = [
     let(dir=(from_a<to_a) ? 1 : -1)
     for(ang=[from_a:fn()*dir:to_a]) [r*cos(ang), r*sin(ang)]
@@ -37,6 +24,32 @@ module halfcirc(r, stepwidth=2) polygon([
     each arc(r)
 ]);
 
+/****************************************************************************
+*********************** The 'Hart' puzzle cutter ****************************
+****************************************************************************/
+module hart_puzzle(height, twist=360, diam=undef, offset=0.1) difference() {
+    // Create a twist-together puzzle in the style of George Hart's
+    // original at Thingiverse.  We take the children and subtract a
+    // twisted semi-square on the positive X axis, of given diameter
+    // and twist.  Make sure that your object is the same height,
+    // and is no more than diam from the Z axis at any point.  For
+    // best results make sure that:
+    // a) the bottom of the object just touches the X axis
+    // b) the object is symmetrical around the Z axis
+    // c) the overall twist (mod 360) equals the amount of twist that would
+    //    make your object equal an inverted copy of itself.  For tetrahedrons
+    //    this is 90 degrees, for cubes and octahedra it's 180 degrees. 
+    diam = (diam==undef ? height : diam);
+    children();
+    linear_extrude(height, convexity=6, twist=twist, slices=height)
+      translate([-offset, 0, 0]) halfsquare(diam);
+}
+
+$fn=$preview ? 40 : 80;
+
+/****************************************************************************
+******************************* Tetrahedrons ********************************
+****************************************************************************/
 module tetrahedron(sidelen) {
     height = sidelen*sin(60);
     width = sidelen/2;
@@ -47,7 +60,7 @@ module tetrahedron(sidelen) {
     );
 }
 
-module r_tetrahedron(sidelen, r, within_tetra=false) {
+module r_tetrahedron(sidelen, r, pos=1) {
     // Like a tetrahedron but using a hull to get rounded corners.
     // With `within_tetra` left as false, the spheres are positioned
     // so that the edges of the rounded tetrahedron touch the edges
@@ -55,8 +68,8 @@ module r_tetrahedron(sidelen, r, within_tetra=false) {
     // With `within_tetra` set to true, the spheres are positioned so
     // that the faces are entirely within the tetrahedron; this means
     // the rounded sides don't touch the X axis.
-    z_off = r*(within_tetra ? 2 : 1);
-    wid_off = r*(within_tetra ? 2.3333333 : 1);
+    z_off = r*(pos==1 ? 0 : pos==2 ? 1 : 2);
+    wid_off = r*(pos==1 ? 0 : pos==2 ? 1 : 2.3333333);
     height = sidelen*sin(60) - z_off;
     sidelen2 = sidelen / 2;
     width = sidelen2 - wid_off;
@@ -68,6 +81,21 @@ module r_tetrahedron(sidelen, r, within_tetra=false) {
     }
 }
 
+module h_r_tetrahedron(sidelen, r, offset, pos=1) difference() {
+    hoffset=offset*sin(60);
+    r_tetrahedron(sidelen, r, pos);
+    translate([hoffset, 0, hoffset]) r_tetrahedron(sidelen-offset*2, r, pos);
+}
+
+tetra_side = 50/sin(60);
+hart_puzzle(50, -(360+90)) translate([-tetra_side/2, 0, 0])
+//tetrahedron(tetra_side);
+//r_tetrahedron(tetra_side, 5, pos=2);
+h_r_tetrahedron(tetra_side, 5, 14, pos=2);
+
+/****************************************************************************
+******************************** Octahedrons ********************************
+****************************************************************************/
 module octahedron(height) {
     // An octahedron of given height centred on the origin.  This means
     // that all points are exactly half the height from the origin.
@@ -141,14 +169,21 @@ module hollow_r_octahedron_s(sidelen, r, thick) difference() {
     translate([thick, 0, thick]) r_octahedron_s(sidelen-thick*2, r);
 }
 
-module r_cylinder(diameter, height, r) minkowski() {
-    angle = atan2(diameter, height);
-    z = r*cos(angle);
-    rotate([0, angle, 0]) translate([-diameter/2, 0, z])
-      cylinder(h=height, d=diameter-r*2);
-    sphere(r=r);
+height=70;  thick=10;  rad=5;
+//* hart_puzzle(height, twist, height*1.1) {
+//    translate([-height/2, 0, 0]) h_r_octahedron_s(height, rad, thick);
+//}
+
+//translate([0, 0, 100*$t]) rotate([180*$t, 0, 180*(half_turns+1)]) 
+//rotate([0, 0, 181]) 
+* translate([0, 0, height*$t]) rotate([0, 0, -twist*$t+180]) color("blue")
+hart_puzzle(height, twist, height*1.1) {
+    translate([-height/2, 0, 0]) h_r_octahedron_s(height, rad, thick);
 }
 
+/****************************************************************************
+*********************************** Cubes ***********************************
+****************************************************************************/
 module r_cube(sidelen, r, within_cube=false) {
     // A rounded cube, rotated on the X axis to be like the tetrahedron
     // and octahedron models.
@@ -178,9 +213,16 @@ module hollow_r_cube(sidelen, r, thick, within_cube=false) difference() {
       r_cube(sidelen-thick*2, r, within_cube);
 }
 
-//     linear_extrude(100, convexity=6, twist=twist, slices=200)
-//       translate([0, -60, 0]) divsquare([60, 120]);
-// linear_extrude(100, convexity=2, twist=180, slices=100) halfcirc(r=60);
+/****************************************************************************
+******************************* Other shapes ********************************
+****************************************************************************/
+module r_cylinder(diameter, height, r) minkowski() {
+    angle = atan2(diameter, height);
+    z = r*cos(angle);
+    rotate([0, angle, 0]) translate([-diameter/2, 0, z])
+      cylinder(h=height, d=diameter-r*2);
+    sphere(r=r);
+}
 
 module quadroctohedron(side) {
     // A weird shape joining two squares rotated by 45 degrees
@@ -220,33 +262,6 @@ module r_quadroctahedron(side, r) {
     // A rounded version of the quadroctahedron
 }
 
-module hart_puzzle(height, twist=360, diam=100, offset=0.1) difference() {
-    // Create a twist-together puzzle in the style of George Hart's
-    // original at Thingiverse.  We take the children and subtract a
-    // twisted semi-square on the positive X axis, of given diameter
-    // and twist.  Make sure that your object is the same height,
-    // and is no more than diam from the Z axis at any point.  For
-    // best results make sure that:
-    // a) the bottom of the object just touches the X axis
-    // b) the object is symmetrical around the Z axis
-    // c) the overall twist (mod 360) equals the amount of twist that would
-    //    make your object equal an inverted copy of itself.  For tetrahedrons
-    //    this is 90 degrees, for cubes and octahedra it's 180 degrees. 
-    children();
-    linear_extrude(height, convexity=6, twist=twist, slices=height)
-      translate([-offset, 0, 0]) halfsquare(diam);
-}
-
-//hart_puzzle(50.002, twist=360+45)
-//translate([0, 0, 25.001]) quadroctohedron(50);
-
-// hart_puzzle(50*sqrt(2), 720, diam=50, offset=+0.1)
-// rotate([-45, 0, 90]) translate([0, -25, 0]) hexagon_solid(height=50, side2side=50);
-* hart_puzzle(50*sqrt(2), 720, diam=50, offset=+0.1)
-rotate([-45, 0, 90]) translate([0, -25, 0])
-  r_hexagon_solid(height=50, side2side=50, r=5, pos=2);
-
-$fn=$preview ? 40 : 80;
 full_turns = 2; half_turns = 0;
 twist = 360*full_turns + 180*half_turns;
 
@@ -254,20 +269,6 @@ twist = 360*full_turns + 180*half_turns;
     translate([-50, -50, 0.01]) cube(99.98);
 }
 
-height=70;  thick=10;  rad=5;
-* hart_puzzle(height, twist, height*1.1) {
-    translate([-height/2, 0, 0]) h_r_octahedron_s(height, rad, thick);
-}
-
-//translate([0, 0, 100*$t]) rotate([180*$t, 0, 180*(half_turns+1)]) 
-//rotate([0, 0, 181]) 
-* translate([0, 0, height*$t]) rotate([0, 0, -twist*$t+180]) color("blue")
-hart_puzzle(height, twist, height*1.1) {
-    // txl(x=-50) r_octahedron_s(100, 2);
-    // translate([-50, -50, 0.01]) cube(99.98);
-    translate([-height/2, 0, 0]) h_r_octahedron_s(height, rad, thick);
-}
-
 cu_sidelen = 50;  cu_thick = 25; // cu_sidelen/5;
-hart_puzzle(cu_sidelen * sqrt(2), -twist, cu_sidelen*2, offset=0.5)
+* hart_puzzle(cu_sidelen * sqrt(2), -twist, cu_sidelen*2, offset=0.5)
   translate([-cu_sidelen/2, 0, ]) hollow_r_cube(cu_sidelen, 3, cu_thick);

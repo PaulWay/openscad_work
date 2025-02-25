@@ -8,7 +8,7 @@ top_p_length = 155;  top_p_l = top_p_length - plate_corner_r*2;
 top_p_width = 155;  top_p_w = top_p_width - plate_corner_r*2;
 top_p_thick = 5;  top_p_t_eps = top_p_thick +0.03;
 t_bolt_hole_edge_off = 7;  // to edge of hole
-t_bolt_hole_dia = 5;
+t_bolt_hole_dia = 5;  t_bolt_hole_outer_dia = 10;
 t_bolt_hole_x = top_p_length/2 - t_bolt_hole_edge_off - t_bolt_hole_dia/2;
 t_bolt_hole_y = top_p_width/2 - t_bolt_hole_edge_off - t_bolt_hole_dia/2;
 through_hole_x_off = 9.5;  // to center
@@ -18,15 +18,29 @@ through_hole_x = top_p_length/2 - through_hole_x_off;
 through_hole_y = top_p_width/2 - through_hole_y_off;
 
 funnel_thick = 3;  funnel_height = 150;
+support_height = 15;  // support will be as wide as it is tall
+support_top_x = inlet_length/2 + funnel_thick;
+// support_bot_x = min(support_top_x + support_height, top_p_length/2);
+support_bot_x = top_p_length/2;
+support_top_y = inlet_width/2 + funnel_thick;
+support_bot_y = min(support_top_y + support_height, top_p_width/2);
+support_top_z = support_height + top_p_thick;
 
-module shredder_inlet_outlet_template() union() {
+module shredder_inlet_outlet_template(plate="bottom") union() {
     // center inlet hole
     square([inlet_length, inlet_width], center=true);
     // holes to put bolt holes
-    translate([-b_bolt_hole_x, -b_bolt_hole_y]) circle(d=b_bolt_hole_dia);
-    translate([-b_bolt_hole_x, +b_bolt_hole_y]) circle(d=b_bolt_hole_dia);
-    translate([+b_bolt_hole_x, -b_bolt_hole_y]) circle(d=b_bolt_hole_dia);
-    translate([+b_bolt_hole_x, +b_bolt_hole_y]) circle(d=b_bolt_hole_dia);
+    if (plate=="bottom") {
+        translate([-b_bolt_hole_x, -b_bolt_hole_y]) circle(d=b_bolt_hole_dia);
+        translate([-b_bolt_hole_x, +b_bolt_hole_y]) circle(d=b_bolt_hole_dia);
+        translate([+b_bolt_hole_x, -b_bolt_hole_y]) circle(d=b_bolt_hole_dia);
+        translate([+b_bolt_hole_x, +b_bolt_hole_y]) circle(d=b_bolt_hole_dia);
+    } else if (plate=="top") {
+        translate([-t_bolt_hole_x, -t_bolt_hole_y]) circle(d=b_bolt_hole_dia);
+        translate([-t_bolt_hole_x, +t_bolt_hole_y]) circle(d=b_bolt_hole_dia);
+        translate([+t_bolt_hole_x, -t_bolt_hole_y]) circle(d=b_bolt_hole_dia);
+        translate([+t_bolt_hole_x, +t_bolt_hole_y]) circle(d=b_bolt_hole_dia);
+    }
     // holes to avoid shredder bolts
     translate([-through_hole_x, -through_hole_y]) circle(d=b_through_hole_dia);
     translate([-through_hole_x, +through_hole_y]) circle(d=b_through_hole_dia);
@@ -43,10 +57,31 @@ module rounded_rect(x, y, rad) {
 $fn = $preview ? 20 : 50;
 // inlet funnel
 module inlet_funnel() union() {
-    // base plate
-    linear_extrude(top_p_thick) difference() {
-        rounded_rect(top_p_length, top_p_width, plate_corner_r);
-        shredder_inlet_outlet_template();
+    // base plate with support
+    difference() {
+        translate([0, 0, +0.01]) union() {
+            linear_extrude(top_p_thick)
+              rounded_rect(top_p_length, top_p_width, plate_corner_r);
+            translate([0, 0, top_p_thick]) filleted_hexahedron(
+                support_bot_x, support_bot_y,
+                support_top_x, support_top_y,
+                support_height, plate_corner_r
+            );
+        }
+        // the holes in the mounting plate
+        linear_extrude(support_top_z + epsilo2, convexity=6)
+          shredder_inlet_outlet_template("top");
+        // allowances for heads on the bolts attaching the plate to the shredder
+        translate([0, 0, top_p_thick]) linear_extrude(support_height) union() {
+            translate([-t_bolt_hole_x, -t_bolt_hole_y])
+              circle(d=t_bolt_hole_outer_dia);
+            translate([-t_bolt_hole_x, +t_bolt_hole_y])
+              circle(d=t_bolt_hole_outer_dia);
+            translate([+t_bolt_hole_x, -t_bolt_hole_y])
+              circle(d=t_bolt_hole_outer_dia);
+            translate([+t_bolt_hole_x, +t_bolt_hole_y])
+              circle(d=t_bolt_hole_outer_dia);
+        }
     }
     // inlet funnel
     linear_extrude(funnel_height) difference() {
@@ -54,6 +89,8 @@ module inlet_funnel() union() {
         square([inlet_length, inlet_width], center=true);
     }
 }
+
+inlet_funnel();
 
 bot_p_corner_r = 5;
 bot_p_length = 155;  bot_p_l = bot_p_length - bot_p_corner_r*2;
@@ -255,5 +292,5 @@ module box_loader_side_plate(container_length) difference() {
     color("white") translate([-100, 0, 0]) rotate([90, 0, 90]) box_template();
 }
 
-box_loader_outlet_plate();
+* box_loader_outlet_plate();
 // box_loader_side_plate(container_length);

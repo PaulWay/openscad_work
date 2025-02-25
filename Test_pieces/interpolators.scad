@@ -95,6 +95,7 @@ module polygon_ring_constructor(
     faces = [
         // [0, 1, 2, 3], [4, 5, 6, 7],
         // [0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7],
+        each band_points(0, 5, 2),
         // [49*4+0, 49*4+1, 1, 0],
         // for(i=[0:listlen-1]) each band_points(i, steps, listlen)
         // each band_points(0, listlen, steps),

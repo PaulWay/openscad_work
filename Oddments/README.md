@@ -89,5 +89,5 @@ A hook for hanging the bag we use to hold our dirty laundry when travelling.
 
 **File: `weights_separator.scad`**
 
-Used for keeping my two 5kg hexagonal-ended weights sitting flat in a
-backpack so I can walk without them digging into my back.
+Two plates that lock into my hexagonal-ended 5kg weights that allow them to
+sit in my rucking backpack without gouging into my back.

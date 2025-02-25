@@ -235,6 +235,19 @@ module hexahedron(corners, convexity=1) {
     );
 }
 
+module filleted_hexahedron(x1, y1, x2, y2, height, fillet_rad) {
+    px1r = x1 - fillet_rad; nx1r = fillet_rad - x1;
+    py1r = y1 - fillet_rad; ny1r = fillet_rad - y1;
+    px2r = x2 - fillet_rad; nx2r = fillet_rad - x2;
+    py2r = y2 - fillet_rad; ny2r = fillet_rad - y2;
+    // The hull around the four cylinders
+    hull() {
+        cylinder_xyzs(px1r, py1r, px2r, py2r, height, fillet_rad);
+        cylinder_xyzs(nx1r, py1r, nx2r, py2r, height, fillet_rad);
+        cylinder_xyzs(px1r, ny1r, px2r, ny2r, height, fillet_rad);
+        cylinder_xyzs(nx1r, ny1r, nx2r, ny2r, height, fillet_rad);
+    }
+}
 ////////////////////////////////////////////////////////////////////////////////
 // RINGS AND CONES
 ////////////////////////////////////////////////////////////////////////////////

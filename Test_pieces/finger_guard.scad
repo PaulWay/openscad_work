@@ -4,7 +4,7 @@ full_length = 60;
 inner_size_base = 24;
 inner_size_tip = 21;
 thickness = 2;
-hole_size = 2;  tip_hole_dia = 4;
+hole_size = 2.5;  tip_hole_dia = 4;
 holes_per_layer = 19;
 split_dia = 3;
 
@@ -13,7 +13,7 @@ height = full_length - inner_size_tip/2;
 outer_size_base = inner_size_base + thickness;
 outer_size_tip= inner_size_tip + thickness;
 outer_tip_rad = outer_size_tip / 2;
-hole_start = min(inner_size_base, inner_size_tip) / 2;
+hole_start = min(inner_size_base, inner_size_tip) / 2 - 1;
 hole_len = abs(inner_size_base - inner_size_tip) + thickness;
 max_width = max(outer_size_base, outer_size_tip) + 0.02;
 alt_layer_rot_offset = 180 / holes_per_layer;

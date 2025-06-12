@@ -159,12 +159,35 @@ Modules:
       _centres_ of the cylinders, not the outside edges.
 - **Toroids and pipe bends**
   - `torus(outer, inner, x_stretch=1, angle=360)`
+    - The standard torus, with the ability to scale it in the X dimension,
+      and get a toroidal arc (because, of course, this is produced with a
+      `rotate_extrude`).
   - `toroidal_pipe(bend_radius, pipe_i_radius, thickness, angle=360)`
+    - A hollow toroid, given the inner radius and the wall thickness.
   - `quarter_torus_bend_snub_end(outer_rad, width, angle, outer=true)`
+    - A quarter circle in a toroidal arc, either on the outer or inner bottom
+      quarter of the circle.
+    - This can be used to subtract from a surface to fillet the join between
+      a base and a circular fitting.
   - `conduit_angle_bend(bend_radius, pipe_radius, bend_angle, thickness,
     join_length, join_radius=undef,
     join_a=true, join_b=true, flare_a=true, flare_b=true,
     curved_a=false, curved_b=false)`
+    - The handy dandy all-purpose generator for curved parts to join two
+      pipes together.  `pipe_radius` is the internal pipe diameter, and the
+      thickness is then added to that.
+    - Each end, 'a' (the one on the XZ plane) and 'b' (the other one), can be
+      manipulated in several ways:
+      - If `join_(a|b)` is `false`, then no join segment is added on that end.
+      - If `flare_(a|b)` is `false`, then that end is the same diameter as the
+        overall pipe; otherwise it's wider, so that a similar pipe of the same
+        diameter would fit into it.
+      - If `curved_(a|b)` is `false` then that join end is straight (to fit a
+        straight pipe); if `true` that join end is curved (to fit into
+        another curved pipe).  `curved_(a|b)=true` allows multiple curved
+        segments to be joined together into a bend of a radius greater than
+        would fit in a printer or would be printed without supports.
+    - See `Test_pieces/conduit_angle_bend*.scad` for examples and tests.
 - **Rectangular tubes and toroids**
   - `rectangular_pipe(width, height, thickness, length)`
   - `rectangular_tube(x, y, thickness, height)`

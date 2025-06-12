@@ -18,6 +18,15 @@ Then pick it up and put the chuck in from the other side - the 'vanes' of the
 fan are angled in on the 'outside' away from the chuck.  The part has been
 designed to allow customisation for other belt and chuck sizes.
 
+**File: `filings_collector_proedge.scad`**
+
+A two part filings collector, mainly designed to fit in the base of the Robert
+Sorby ProEdge sharpening system.  The base holds the magnets, the top sits
+over that and lifts off to allow the filings to be picked up and emptied into
+the bin without sticking to the magnets.  You may need to print this in a
+high-temperature filament, or just accept that some hot filings are going to
+embed themselves in the surface of the top.
+
 **File: `masonry_drill_rack_v1.0.scad`**
 
 A basic block to store the masonry drills I have.

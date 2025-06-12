@@ -181,7 +181,7 @@ function p_arcline(r1, r2, arc_len, steps=0) =
 let (
     stepsm1 = ((steps>0) ? steps : arc_len/fn()) - 1,
     arc_frac = arc_len/stepsm1,
-    r_frac = (r2-r1)/stepsm1,
+    r_frac = (r2-r1)/stepsm1
 )
 [
     for (step=[0:stepsm1]) [r1+r_frac*step, arc_frac*step]
@@ -191,7 +191,7 @@ function p_arcline_ft(r1, r2, arc_from, arc_to, steps=0) =
 let (
     stepsm1 = ((steps>0) ? steps : (arc_to-arc_from)/fn()) - 1,
     arc_frac = (arc_to-arc_from)/stepsm1,
-    r_frac = (r2-r1)/stepsm1,
+    r_frac = (r2-r1)/stepsm1
 )
 [
     for (step=[0:stepsm1]) [r1+r_frac*step, arc_from+arc_frac*step]

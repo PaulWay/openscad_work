@@ -79,6 +79,14 @@ A replacement for a table foot for a friend.
 
 One of those fidget toy cones with a stellated insert that twists together.
 
+**File: `two_letter_intersection.scad`
+
+Two intersecting letters, one projected along the Y axis from the XZ plane
+and the other projected along the X axis from the XY plane.  This gives a
+neat effect but choice of letters and font will dictate whether you have any
+things hovering in midair.  Capital letters and sans-serif fonts are probably
+better for this.
+
 **File: `urban_500_mount.scad`**
 
 A mount for the Urban 500 bicycle light.

@@ -24,6 +24,11 @@ module halfcirc(r, stepwidth=2) polygon([
     each arc(r)
 ]);
 
+function pos_to_offset(pos=1) = (
+    assert(pos==1 || pos==2 || pos == 3, "Pos must be 1, 2, or 3")
+    pos==1 ? 0 : pos==2 ? sin(45) : 1
+);
+
 /****************************************************************************
 *********************** The 'Hart' puzzle cutter ****************************
 ****************************************************************************/
@@ -88,7 +93,7 @@ module h_r_tetrahedron(sidelen, r, offset, pos=1) difference() {
 }
 
 tetra_side = 50/sin(60);
-hart_puzzle(50, -(360+90)) translate([-tetra_side/2, 0, 0])
+* hart_puzzle(50, -(360+90)) translate([-tetra_side/2, 0, 0])
 //tetrahedron(tetra_side);
 //r_tetrahedron(tetra_side, 5, pos=2);
 h_r_tetrahedron(tetra_side, 5, 14, pos=2);
@@ -136,7 +141,7 @@ module octahedron_s(sidelen) {
     );
 }
 
-module r_octahedron_s(sidelen, r) {
+module r_octahedron_s(sidelen, r, pos=1) {
     // A rounded octahedron of a given side length, with the bottom edge
     // being on the X axis from the origin to +sidelen and the 'top' edge
     // being +sidelen in Z above that.  Each side forms an equilateral
@@ -169,17 +174,19 @@ module hollow_r_octahedron_s(sidelen, r, thick) difference() {
     translate([thick, 0, thick]) r_octahedron_s(sidelen-thick*2, r);
 }
 
-height=70;  thick=10;  rad=5;
+height=70;  thick=15;  rad=5;
 //* hart_puzzle(height, twist, height*1.1) {
 //    translate([-height/2, 0, 0]) h_r_octahedron_s(height, rad, thick);
 //}
 
-//translate([0, 0, 100*$t]) rotate([180*$t, 0, 180*(half_turns+1)]) 
-//rotate([0, 0, 181]) 
+//translate([0, 0, 0]) rotate([0, 0, -twist*$t]) 
+//hart_puzzle(height, twist, height*1.1) {
+//    translate([-height/2, 0, 0]) hollow_r_octahedron_s(height, rad, thick);
+//};
 * translate([0, 0, height*$t]) rotate([0, 0, -twist*$t+180]) color("blue")
 hart_puzzle(height, twist, height*1.1) {
-    translate([-height/2, 0, 0]) h_r_octahedron_s(height, rad, thick);
-}
+    translate([-height/2, 0, 0]) hollow_r_octahedron_s(height, rad, thick);
+};
 
 /****************************************************************************
 *********************************** Cubes ***********************************

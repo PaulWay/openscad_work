@@ -92,6 +92,14 @@ Modules:
       (bottom thereon, top `height` away).  Its 'vertical' edges are at
       positive and negative (x1,y1) at the base and (x2,y2) at top, and these
       edges are formed by cylinders of radius `fillet_rad`.
+  - `r_diamond_2d(x, y, r)`
+    - A diamond of maximum dimension `x`, `y` with rounded corners of radius `r`.
+  - `r_diamond_screw_plate(x, y, r, hole_x, hole_r, thick)`
+    - A rounded diamond-shaped plate with two holes that you can use as a
+      base for other objects.  The plate diamond is of maximum dimensions
+      `x`, `y`, the corners are of radius `r`. The two screw holes are `hole_x`
+      from the centre away in positive and negative X, and are of radius
+      `hole_r`.  The whole plate is `thick` height in Z.
 - **Rings and Cones**
   - function `radius_from_d_or_r(d=undef, r=undef)`
     - Used in the below functions that take either a `d` or `r` parameter
@@ -121,6 +129,16 @@ Modules:
   - `pipe_oi(height, o_radius, i_radius)`
   - `hollow_cone_rt(height, bottom_radius, top_radius, thickness)`
   - `hollow_cone_oi(height, o_bot_radius, i_bot_radius, o_top_radius, i_top_radius)`
+  - `sphericone(sphere_r, cone_base_r, angle=40, truncate_at_xy_plane=false)`
+    - A sphere of `sphere_r` radius, standing on a cone whose base is of
+      `cone_base_r` radius, where the angle of the cone is `angle` from the
+      horizontal.  The cone height is calculated such that it meets the
+      sphere at a tangent.
+    - This is for printing a sphere, sitting on some other
+      object such as a cylinder or flat surface, without needing support.
+      This will emit the total height, which is calculated; if you need an
+      absolute maximum height you will need to put something like a cylinder
+      underneath it based on that total sphericone height.
 - **Cylinder segments**
   - `half_cylinder(height, radius)`
   - `cylinder_segment(height, radius, angle=360)`

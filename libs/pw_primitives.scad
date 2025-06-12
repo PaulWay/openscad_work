@@ -248,6 +248,26 @@ module filleted_hexahedron(x1, y1, x2, y2, height, fillet_rad) {
         cylinder_xyzs(nx1r, ny1r, nx2r, ny2r, height, fillet_rad);
     }
 }
+
+module r_diamond_2d(x, y, r) hull() {
+    // A simple rounded diamond, centred on the origin.
+    xmr = x - r; ymr = y - r;
+    translate([+xmr, 0]) circle(r=r);
+    translate([-xmr, 0]) circle(r=r);
+    translate([0, +ymr]) circle(r=r);
+    translate([0, -ymr]) circle(r=r);
+}
+
+module r_diamond_screw_plate(x, y, r, hole_x, hole_r, thick) {
+    // A diamond plate with two holes on the X axis for bolting through.
+    assert(x > hole_x + hole_r, "Hole cannot protrude outside X dimension");
+    linear_extrude(thick, convexity=4) difference() {
+        r_diamond_2d(x, y, r);
+        translate([+hole_x, 0]) circle(r=hole_r);
+        translate([-hole_x, 0]) circle(r=hole_r);
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // RINGS AND CONES
 ////////////////////////////////////////////////////////////////////////////////
@@ -419,6 +439,35 @@ module hollow_cone_oi(
     translate([0, 0, -epsilon])
       cylinder(h=height+epsilo2, r1=i_bot_radius, r2=i_top_radius);
 }};
+
+module sphericone(sphere_r, cone_base_r, angle=40, truncate_at_xy_plane=false) union() {
+    // A sphere atop a truncated cone.  Useful for printing a sphere that
+    // stands on a cylinder - the cone obviates the need for supports.
+    sphere_x = sphere_r * sin(angle);  // from cone/sphere touch to Z axis
+    sphere_z = sphere_r * cos(angle);  // from cone/sphere touch up to sphere centre
+    total_z = sphere_r / cos(angle);  // from base of true cone tip to sphere centre
+    cone_trunc_z = cone_base_r * tan(angle);  // height of extra bit of cone not used
+    cone_z = total_z - (sphere_z + cone_trunc_z);  // total height of cone frustrum
+    assert(cone_z > 0, str("sphere angle at intersect already greater than ", angle));
+    // height of sphere above cone base, given spheres start at origin
+    sphere_h = total_z - cone_trunc_z;
+    echo(str(
+        "Sphericone(", sphere_r, cone_base_r, angle,
+        "): cone frustrum height = ", cone_z,
+        ", total height = ", total_z - cone_trunc_z
+    ));
+    translate([0, 0, 0]) cylinder(h=cone_z, r1=cone_base_r, r2=sphere_x);
+    // Do we need to truncate the sphere at the XY plane?  Probably not if this is
+    // being put on some other object...
+    sphere_below = (sphere_r + cone_trunc_z) - total_z;
+    echo(sphere_h=sphere_h, sphere_below=sphere_below);
+    if (truncate_at_xy_plane && sphere_below > 0) intersection() {
+        cylinder(h=sphere_r*2, r=sphere_r);
+        translate([0, 0, sphere_h]) sphere(r=sphere_r);
+    } else {
+        translate([0, 0, sphere_h]) sphere(r=sphere_r);
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // CYLINDER SEGMENTS

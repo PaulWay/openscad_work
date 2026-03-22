@@ -1,8 +1,9 @@
-include <../libs/pw_primitives.scad>;
+include <BOSL2/std.scad>
+include <../libs/pw_primitives.scad>
 
 module filings_collector_base(
     base_len, base_wid, base_high, magnet_len, magnet_wid, magnet_high, magnet_sep,
-    margin=0.2
+    margin=0.2, side_round=2
 ) {
     /*
      * The base for the filings collector, which sits under the Robert Sorby
@@ -33,7 +34,10 @@ module filings_collector_base(
     echo(orientation=orientation, magnet_xnum=magnet_xnum, magnet_ynum=magnet_ynum);
     echo(magnet_xoff=magnet_xoff, magnet_yoff=magnet_yoff);
     difference() {
-        cube([base_len, base_wid, base_high]);
+        cuboid(
+            [base_len, base_wid, base_high], anchor=[-1, -1, -1]
+            , rounding=side_round, edges="Z"
+        );
         translate([magnet_xoff, magnet_yoff, -0.01]) union() {
             for (xpos = [0:magnet_xnum-1]) {
                 for (ypos = [0:magnet_ynum-1]) {
@@ -47,10 +51,10 @@ module filings_collector_base(
 
 module filings_collector_top(
     base_len, base_wid, height, side_thick, under_high, top_high,
-    side_type="straight", fill_type="none", margin=0.2
+    side_type="straight", fill_type="none", margin=0.2, side_round=2
 ) {
     /*
-     * The top of the collector to fit on the base above.
+     * The top of the collector to fit on the bas1e above.
      * This is actually larger than the 'base' it fits on, by side_thick plus
      * margin on each side.
      * The side_type argument controls the sides' profile:
@@ -72,7 +76,11 @@ module filings_collector_top(
     mid_len = base_len + side_thick*2;
     mid_wid = base_wid + side_thick*2;
     difference() {
-        cube([full_len, full_wid, base_high]);
+        // cube([full_len, full_wid, base_high]);
+        cuboid(
+            [full_len, full_wid, base_high], anchor=BOT+LEFT+FWD
+            , rounding=2, edges="Z"
+        );
         translate([side_thick, side_thick, -epsilon])
           cube([under_len, under_wid, under_high+epsilon]);
     }
@@ -101,10 +109,16 @@ module filings_collector_top(
               cube([base_len, base_wid, 1]);
         }
     }
-    // Then the fill
+    // Then the fill - 'none' needs no handling.
     if (fill_type=="ridges") {
+        
     }
 }
 
-// mirror([0, 0, 1]) filings_collector_base(80, 60, 5, 18, 5, 5, 3);
-filings_collector_top(80, 60, 10, 4, 2, 5, side_type="rdiag");
+length = 79.5;
+width = 64.5;
+
+
+mirror([0, 0, 1]) filings_collector_base(length, width, 5.5, 18, 5.1, 5.1, 3);
+//translate([100, 0, 0])
+//filings_collector_top(length, width, 10, 4, 2, 5, side_type="rdiag");
